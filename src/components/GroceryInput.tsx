@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus } from 'lucide-react';
-import { categorizeItem, getCategoryInfo, CategoryType } from '@/lib/groceryCategories';
+import { Plus, History } from 'lucide-react';
+import { categorizeItem, getCategoryInfo, CategoryType, searchKnownItems, getFrequentItems, KnownItem } from '@/lib/groceryCategories';
+import { cn } from '@/lib/utils';
 
 interface GroceryInputProps {
   onAddItem: (name: string, category: CategoryType) => void;
@@ -9,13 +10,24 @@ interface GroceryInputProps {
 export function GroceryInput({ onAddItem }: GroceryInputProps) {
   const [value, setValue] = useState('');
   const [previewCategory, setPreviewCategory] = useState<CategoryType | null>(null);
+  const [suggestions, setSuggestions] = useState<KnownItem[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (value.trim()) {
       setPreviewCategory(categorizeItem(value));
+      const matches = searchKnownItems(value);
+      setSuggestions(matches);
+      setShowSuggestions(matches.length > 0);
+      setSelectedIndex(-1);
     } else {
       setPreviewCategory(null);
+      // Show frequent items when input is empty but focused
+      const frequent = getFrequentItems(6);
+      setSuggestions(frequent);
     }
   }, [value]);
 
@@ -26,7 +38,54 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
       onAddItem(value.trim(), category);
       setValue('');
       setPreviewCategory(null);
+      setShowSuggestions(false);
     }
+  };
+
+  const handleSelectSuggestion = (item: KnownItem) => {
+    onAddItem(item.name, item.category);
+    setValue('');
+    setPreviewCategory(null);
+    setShowSuggestions(false);
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => 
+        prev < suggestions.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      handleSelectSuggestion(suggestions[selectedIndex]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleFocus = () => {
+    if (!value.trim()) {
+      const frequent = getFrequentItems(6);
+      setSuggestions(frequent);
+      setShowSuggestions(frequent.length > 0);
+    } else if (suggestions.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent) => {
+    // Delay hiding to allow click on suggestions
+    setTimeout(() => {
+      if (!suggestionsRef.current?.contains(document.activeElement)) {
+        setShowSuggestions(false);
+      }
+    }, 150);
   };
 
   const categoryInfo = previewCategory ? getCategoryInfo(previewCategory) : null;
@@ -39,6 +98,9 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder="Add an item... (e.g., apples, milk, chicken)"
           className="flex-1 bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-lg"
         />
@@ -56,6 +118,43 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
           <Plus className="w-6 h-6" />
         </button>
       </div>
+
+      {/* Suggestions dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div 
+          ref={suggestionsRef}
+          className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/50 rounded-lg shadow-elevated z-20 overflow-hidden animate-fade-in"
+        >
+          {!value.trim() && (
+            <div className="px-4 py-2 text-xs font-medium text-muted-foreground bg-muted/50 flex items-center gap-2">
+              <History className="w-3 h-3" />
+              Recent items
+            </div>
+          )}
+          {suggestions.map((item, index) => {
+            const itemCategoryInfo = getCategoryInfo(item.category);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleSelectSuggestion(item)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors duration-150",
+                  index === selectedIndex 
+                    ? "bg-primary/10" 
+                    : "hover:bg-muted/50"
+                )}
+              >
+                <span className="text-lg">{itemCategoryInfo.icon}</span>
+                <span className="flex-1 text-foreground">{item.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {item.usageCount > 1 ? `${item.usageCount}x` : ''}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </form>
   );
 }

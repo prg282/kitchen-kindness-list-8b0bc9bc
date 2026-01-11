@@ -9,9 +9,10 @@ interface CategorySectionProps {
   items: GroceryItem[];
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onEdit: (id: string, newName: string) => void;
 }
 
-export function CategorySection({ category, items, onToggle, onDelete }: CategorySectionProps) {
+export function CategorySection({ category, items, onToggle, onDelete, onEdit }: CategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const categoryInfo = getCategoryInfo(category);
   
@@ -56,6 +57,7 @@ export function CategorySection({ category, items, onToggle, onDelete }: Categor
               item={item}
               onToggle={onToggle}
               onDelete={onDelete}
+              onEdit={onEdit}
             />
           ))}
         </div>
