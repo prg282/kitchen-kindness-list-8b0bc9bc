@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingBasket, Sparkles, Trash2 } from 'lucide-react';
 import { GroceryInput } from './GroceryInput';
 import { CategorySection } from './CategorySection';
-import { GroceryItem, CategoryType, categories } from '@/lib/groceryCategories';
+import { GroceryItem, CategoryType, categories, saveKnownItem, categorizeItem } from '@/lib/groceryCategories';
 
 const STORAGE_KEY = 'grocery-list-items';
 
@@ -17,6 +17,9 @@ export function GroceryList() {
   }, [items]);
 
   const addItem = (name: string, category: CategoryType) => {
+    // Save to known items for future suggestions
+    saveKnownItem(name, category);
+    
     const newItem: GroceryItem = {
       id: crypto.randomUUID(),
       name,
@@ -36,6 +39,20 @@ export function GroceryList() {
 
   const deleteItem = (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const editItem = (id: string, newName: string) => {
+    const newCategory = categorizeItem(newName);
+    // Save the edited name as a known item
+    saveKnownItem(newName, newCategory);
+    
+    setItems(prev =>
+      prev.map(item =>
+        item.id === id 
+          ? { ...item, name: newName, category: newCategory } 
+          : item
+      )
+    );
   };
 
   const clearChecked = () => {
@@ -73,7 +90,7 @@ export function GroceryList() {
                 <h1 className="text-2xl sm:text-3xl font-serif text-foreground">Grocery List</h1>
                 <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  Smart auto-categorization
+                  Smart auto-categorization • Items saved for reuse
                 </p>
               </div>
             </div>
@@ -122,7 +139,7 @@ export function GroceryList() {
             </div>
             <h2 className="text-xl font-serif text-foreground mb-2">Your list is empty</h2>
             <p className="text-muted-foreground max-w-sm">
-              Start adding items above. They'll be automatically organized into categories!
+              Start adding items above. They'll be automatically organized into categories and saved for next time!
             </p>
           </div>
         ) : (
@@ -134,6 +151,7 @@ export function GroceryList() {
                 items={groupedItems[category.id] || []}
                 onToggle={toggleItem}
                 onDelete={deleteItem}
+                onEdit={editItem}
               />
             ))}
           </div>

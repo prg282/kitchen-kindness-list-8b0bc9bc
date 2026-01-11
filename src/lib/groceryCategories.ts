@@ -16,6 +16,14 @@ export interface GroceryItem {
   quantity?: string;
 }
 
+export interface KnownItem {
+  id: string;
+  name: string;
+  category: CategoryType;
+  usageCount: number;
+  lastUsed: string;
+}
+
 export interface Category {
   id: CategoryType;
   name: string;
@@ -130,4 +138,79 @@ export function getCategoryInfo(categoryId: CategoryType): Category {
     icon: '📦',
     keywords: [],
   };
+}
+
+// Known items storage functions
+const KNOWN_ITEMS_KEY = 'grocery-known-items';
+
+export function getKnownItems(): KnownItem[] {
+  const stored = localStorage.getItem(KNOWN_ITEMS_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function saveKnownItem(name: string, category: CategoryType): KnownItem {
+  const knownItems = getKnownItems();
+  const normalizedName = name.toLowerCase().trim();
+  
+  const existingIndex = knownItems.findIndex(
+    item => item.name.toLowerCase() === normalizedName
+  );
+  
+  if (existingIndex >= 0) {
+    // Update existing item
+    knownItems[existingIndex].usageCount++;
+    knownItems[existingIndex].lastUsed = new Date().toISOString();
+    knownItems[existingIndex].category = category; // Update category in case it changed
+    localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(knownItems));
+    return knownItems[existingIndex];
+  } else {
+    // Add new item
+    const newItem: KnownItem = {
+      id: crypto.randomUUID(),
+      name: name.trim(),
+      category,
+      usageCount: 1,
+      lastUsed: new Date().toISOString(),
+    };
+    knownItems.push(newItem);
+    localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(knownItems));
+    return newItem;
+  }
+}
+
+export function updateKnownItem(id: string, name: string, category: CategoryType): void {
+  const knownItems = getKnownItems();
+  const index = knownItems.findIndex(item => item.id === id);
+  if (index >= 0) {
+    knownItems[index].name = name.trim();
+    knownItems[index].category = category;
+    localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(knownItems));
+  }
+}
+
+export function deleteKnownItem(name: string): void {
+  const knownItems = getKnownItems();
+  const filtered = knownItems.filter(
+    item => item.name.toLowerCase() !== name.toLowerCase().trim()
+  );
+  localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(filtered));
+}
+
+export function searchKnownItems(query: string): KnownItem[] {
+  if (!query.trim()) return [];
+  
+  const knownItems = getKnownItems();
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  return knownItems
+    .filter(item => item.name.toLowerCase().includes(normalizedQuery))
+    .sort((a, b) => b.usageCount - a.usageCount)
+    .slice(0, 8); // Return top 8 matches
+}
+
+export function getFrequentItems(limit: number = 10): KnownItem[] {
+  const knownItems = getKnownItems();
+  return knownItems
+    .sort((a, b) => b.usageCount - a.usageCount)
+    .slice(0, limit);
 }
