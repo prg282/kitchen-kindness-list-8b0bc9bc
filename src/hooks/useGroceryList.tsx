@@ -5,7 +5,7 @@ import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groc
 import { toast } from 'sonner';
 
 export function useGroceryList() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [knownItems, setKnownItems] = useState<KnownItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +15,7 @@ export function useGroceryList() {
   // Fetch grocery items
   const fetchItems = useCallback(async () => {
     if (!householdId) return;
-    
+
     const { data, error } = await supabase
       .from('grocery_items')
       .select('*')
@@ -28,13 +28,15 @@ export function useGroceryList() {
       return;
     }
 
-    setItems(data.map(item => ({
-      id: item.id,
-      name: item.name,
-      category: item.category as CategoryType,
-      checked: item.checked,
-      created_by: item.created_by || undefined,
-    })));
+    setItems(
+      data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.category as CategoryType,
+        checked: item.checked,
+        created_by: item.created_by || undefined,
+      }))
+    );
   }, [householdId]);
 
   // Fetch known items
@@ -52,24 +54,43 @@ export function useGroceryList() {
       return;
     }
 
-    setKnownItems(data.map(item => ({
-      id: item.id,
-      name: item.name,
-      category: item.category as CategoryType,
-      usage_count: item.usage_count,
-      last_used: item.last_used,
-    })));
+    setKnownItems(
+      data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.category as CategoryType,
+        usage_count: item.usage_count,
+        last_used: item.last_used,
+      }))
+    );
   }, [householdId]);
 
-  // Initial fetch
+  // Initial fetch + loading state management
   useEffect(() => {
-    if (householdId) {
+    // While auth is still resolving, keep list in loading state.
+    if (authLoading) {
       setLoading(true);
-      Promise.all([fetchItems(), fetchKnownItems()]).finally(() => {
-        setLoading(false);
-      });
+      return;
     }
-  }, [householdId, fetchItems, fetchKnownItems]);
+
+    // If logged out, list is not loading.
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // Logged in but profile/household not ready (or failed to load) -> don't spin forever.
+    if (!householdId) {
+      console.warn('No household_id available yet; skipping grocery fetch.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    Promise.all([fetchItems(), fetchKnownItems()]).finally(() => {
+      setLoading(false);
+    });
+  }, [authLoading, user, householdId, fetchItems, fetchKnownItems]);
 
   // Subscribe to realtime updates
   useEffect(() => {
