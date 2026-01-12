@@ -46,6 +46,7 @@
     --frozen: 200 80% 60%;
     --bakery: 30 60% 55%;
     --beverages: 280 50% 55%;
+    --spices: 25 70% 50%;
     --other: 220 15% 50%;
 
     --shadow-soft: 0 2px 8px -2px hsl(25 20% 15% / 0.08);
@@ -138,6 +139,10 @@
 
   .category-beverages {
     --category-color: var(--beverages);
+  }
+
+  .category-spices {
+    --category-color: var(--spices);
   }
 
   .category-other {

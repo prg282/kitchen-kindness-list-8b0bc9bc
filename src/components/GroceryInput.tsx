@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, History } from 'lucide-react';
-import { categorizeItem, getCategoryInfo, CategoryType, searchKnownItems, getFrequentItems, KnownItem } from '@/lib/groceryCategories';
+import { categorizeItem, getCategoryInfo, CategoryType, KnownItem } from '@/lib/groceryCategories';
 import { cn } from '@/lib/utils';
 
 interface GroceryInputProps {
   onAddItem: (name: string, category: CategoryType) => void;
+  searchKnownItems: (query: string) => KnownItem[];
+  getFrequentItems: (limit?: number) => KnownItem[];
 }
 
-export function GroceryInput({ onAddItem }: GroceryInputProps) {
+export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: GroceryInputProps) {
   const [value, setValue] = useState('');
   const [previewCategory, setPreviewCategory] = useState<CategoryType | null>(null);
   const [suggestions, setSuggestions] = useState<KnownItem[]>([]);
@@ -25,11 +27,10 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
       setSelectedIndex(-1);
     } else {
       setPreviewCategory(null);
-      // Show frequent items when input is empty but focused
       const frequent = getFrequentItems(6);
       setSuggestions(frequent);
     }
-  }, [value]);
+  }, [value, searchKnownItems, getFrequentItems]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,8 +80,7 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
     }
   };
 
-  const handleBlur = (e: React.FocusEvent) => {
-    // Delay hiding to allow click on suggestions
+  const handleBlur = () => {
     setTimeout(() => {
       if (!suggestionsRef.current?.contains(document.activeElement)) {
         setShowSuggestions(false);
@@ -101,7 +101,7 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder="Add an item... (e.g., apples, milk, chicken)"
+          placeholder="Add an item... (e.g., apples, milk, cumin)"
           className="flex-1 bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-lg"
         />
         {categoryInfo && (
@@ -119,7 +119,6 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
         </button>
       </div>
 
-      {/* Suggestions dropdown */}
       {showSuggestions && suggestions.length > 0 && (
         <div 
           ref={suggestionsRef}
@@ -148,7 +147,7 @@ export function GroceryInput({ onAddItem }: GroceryInputProps) {
                 <span className="text-lg">{itemCategoryInfo.icon}</span>
                 <span className="flex-1 text-foreground">{item.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {item.usageCount > 1 ? `${item.usageCount}x` : ''}
+                  {item.usage_count > 1 ? `${item.usage_count}x` : ''}
                 </span>
               </button>
             );

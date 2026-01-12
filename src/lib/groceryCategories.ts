@@ -6,6 +6,7 @@ export type CategoryType =
   | 'frozen' 
   | 'bakery' 
   | 'beverages' 
+  | 'spices'
   | 'other';
 
 export interface GroceryItem {
@@ -13,15 +14,15 @@ export interface GroceryItem {
   name: string;
   category: CategoryType;
   checked: boolean;
-  quantity?: string;
+  created_by?: string;
 }
 
 export interface KnownItem {
   id: string;
   name: string;
   category: CategoryType;
-  usageCount: number;
-  lastUsed: string;
+  usage_count: number;
+  last_used: string;
 }
 
 export interface Category {
@@ -71,13 +72,31 @@ export const categories: Category[] = [
     ],
   },
   {
+    id: 'spices',
+    name: 'Spices & Seasonings',
+    icon: '🧂',
+    keywords: [
+      'salt', 'pepper', 'cumin', 'paprika', 'turmeric', 'cinnamon', 'nutmeg', 'oregano',
+      'thyme', 'rosemary', 'sage', 'bay leaf', 'bay leaves', 'coriander', 'cardamom',
+      'clove', 'cloves', 'allspice', 'cayenne', 'chili powder', 'curry powder', 'curry',
+      'garam masala', 'chinese five spice', 'italian seasoning', 'herbs de provence',
+      'saffron', 'fennel seed', 'mustard seed', 'celery seed', 'poppy seed', 'sesame seed',
+      'caraway', 'dill', 'tarragon', 'marjoram', 'savory', 'anise', 'star anise',
+      'vanilla', 'vanilla extract', 'almond extract', 'peppercorn', 'white pepper',
+      'red pepper flakes', 'crushed red pepper', 'seasoning', 'spice', 'spice blend',
+      'everything bagel seasoning', 'garlic powder', 'onion powder', 'smoked paprika',
+      'chili flakes', 'za\'atar', 'sumac', 'harissa', 'berbere', 'ras el hanout',
+      'old bay', 'cajun seasoning', 'taco seasoning', 'ranch seasoning', 'lemon pepper'
+    ],
+  },
+  {
     id: 'pantry',
     name: 'Pantry',
     icon: '🫙',
     keywords: [
-      'rice', 'pasta', 'bread', 'flour', 'sugar', 'salt', 'pepper', 'oil', 'olive oil',
-      'vinegar', 'soy sauce', 'ketchup', 'mustard', 'mayo', 'mayonnaise', 'sauce', 'spice',
-      'seasoning', 'cereal', 'oatmeal', 'granola', 'nut', 'almond', 'peanut', 'walnut',
+      'rice', 'pasta', 'bread', 'flour', 'sugar', 'oil', 'olive oil',
+      'vinegar', 'soy sauce', 'ketchup', 'mustard', 'mayo', 'mayonnaise', 'sauce',
+      'cereal', 'oatmeal', 'granola', 'nut', 'almond', 'peanut', 'walnut',
       'cashew', 'seed', 'bean', 'lentil', 'chickpea', 'canned', 'tomato sauce', 'broth',
       'stock', 'soup', 'noodle', 'cracker', 'chip', 'pretzel', 'popcorn', 'snack', 'cookie',
       'candy', 'chocolate', 'honey', 'maple syrup', 'jam', 'jelly', 'peanut butter',
@@ -138,79 +157,4 @@ export function getCategoryInfo(categoryId: CategoryType): Category {
     icon: '📦',
     keywords: [],
   };
-}
-
-// Known items storage functions
-const KNOWN_ITEMS_KEY = 'grocery-known-items';
-
-export function getKnownItems(): KnownItem[] {
-  const stored = localStorage.getItem(KNOWN_ITEMS_KEY);
-  return stored ? JSON.parse(stored) : [];
-}
-
-export function saveKnownItem(name: string, category: CategoryType): KnownItem {
-  const knownItems = getKnownItems();
-  const normalizedName = name.toLowerCase().trim();
-  
-  const existingIndex = knownItems.findIndex(
-    item => item.name.toLowerCase() === normalizedName
-  );
-  
-  if (existingIndex >= 0) {
-    // Update existing item
-    knownItems[existingIndex].usageCount++;
-    knownItems[existingIndex].lastUsed = new Date().toISOString();
-    knownItems[existingIndex].category = category; // Update category in case it changed
-    localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(knownItems));
-    return knownItems[existingIndex];
-  } else {
-    // Add new item
-    const newItem: KnownItem = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      category,
-      usageCount: 1,
-      lastUsed: new Date().toISOString(),
-    };
-    knownItems.push(newItem);
-    localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(knownItems));
-    return newItem;
-  }
-}
-
-export function updateKnownItem(id: string, name: string, category: CategoryType): void {
-  const knownItems = getKnownItems();
-  const index = knownItems.findIndex(item => item.id === id);
-  if (index >= 0) {
-    knownItems[index].name = name.trim();
-    knownItems[index].category = category;
-    localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(knownItems));
-  }
-}
-
-export function deleteKnownItem(name: string): void {
-  const knownItems = getKnownItems();
-  const filtered = knownItems.filter(
-    item => item.name.toLowerCase() !== name.toLowerCase().trim()
-  );
-  localStorage.setItem(KNOWN_ITEMS_KEY, JSON.stringify(filtered));
-}
-
-export function searchKnownItems(query: string): KnownItem[] {
-  if (!query.trim()) return [];
-  
-  const knownItems = getKnownItems();
-  const normalizedQuery = query.toLowerCase().trim();
-  
-  return knownItems
-    .filter(item => item.name.toLowerCase().includes(normalizedQuery))
-    .sort((a, b) => b.usageCount - a.usageCount)
-    .slice(0, 8); // Return top 8 matches
-}
-
-export function getFrequentItems(limit: number = 10): KnownItem[] {
-  const knownItems = getKnownItems();
-  return knownItems
-    .sort((a, b) => b.usageCount - a.usageCount)
-    .slice(0, limit);
 }
