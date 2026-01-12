@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
+// Create a stable query client instance
 const queryClient = new QueryClient();
 
 const App = () => (
