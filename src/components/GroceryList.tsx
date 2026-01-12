@@ -1,63 +1,25 @@
-import { useState, useEffect } from 'react';
-import { ShoppingBasket, Sparkles, Trash2 } from 'lucide-react';
+import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Loader2 } from 'lucide-react';
 import { GroceryInput } from './GroceryInput';
 import { CategorySection } from './CategorySection';
-import { GroceryItem, CategoryType, categories, saveKnownItem, categorizeItem } from '@/lib/groceryCategories';
-
-const STORAGE_KEY = 'grocery-list-items';
+import { CategoryType, categories } from '@/lib/groceryCategories';
+import { useGroceryList } from '@/hooks/useGroceryList';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 export function GroceryList() {
-  const [items, setItems] = useState<GroceryItem[]>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [items]);
-
-  const addItem = (name: string, category: CategoryType) => {
-    // Save to known items for future suggestions
-    saveKnownItem(name, category);
-    
-    const newItem: GroceryItem = {
-      id: crypto.randomUUID(),
-      name,
-      category,
-      checked: false,
-    };
-    setItems(prev => [...prev, newItem]);
-  };
-
-  const toggleItem = (id: string) => {
-    setItems(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
-  };
-
-  const deleteItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
-  };
-
-  const editItem = (id: string, newName: string) => {
-    const newCategory = categorizeItem(newName);
-    // Save the edited name as a known item
-    saveKnownItem(newName, newCategory);
-    
-    setItems(prev =>
-      prev.map(item =>
-        item.id === id 
-          ? { ...item, name: newName, category: newCategory } 
-          : item
-      )
-    );
-  };
-
-  const clearChecked = () => {
-    setItems(prev => prev.filter(item => !item.checked));
-  };
+  const { 
+    items, 
+    loading, 
+    addItem, 
+    toggleItem, 
+    deleteItem, 
+    editItem, 
+    clearChecked,
+    searchKnownItems,
+    getFrequentItems,
+  } = useGroceryList();
+  
+  const { profile, signOut } = useAuth();
 
   // Group items by category
   const groupedItems = items.reduce((acc, item) => {
@@ -66,7 +28,7 @@ export function GroceryList() {
     }
     acc[item.category].push(item);
     return acc;
-  }, {} as Record<CategoryType, GroceryItem[]>);
+  }, {} as Record<CategoryType, typeof items>);
 
   // Sort categories by their order in the categories array
   const sortedCategories = [...categories, { id: 'other' as CategoryType, name: 'Other', icon: '📦', keywords: [] }]
@@ -75,6 +37,17 @@ export function GroceryList() {
   const totalItems = items.length;
   const checkedItems = items.filter(i => i.checked).length;
   const progress = totalItems > 0 ? (checkedItems / totalItems) * 100 : 0;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your grocery list...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,20 +63,39 @@ export function GroceryList() {
                 <h1 className="text-2xl sm:text-3xl font-serif text-foreground">Grocery List</h1>
                 <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  Smart auto-categorization • Items saved for reuse
+                  Smart auto-categorization • Synced with family
                 </p>
               </div>
             </div>
-            {checkedItems > 0 && (
-              <button
-                onClick={clearChecked}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+            <div className="flex items-center gap-2">
+              {checkedItems > 0 && (
+                <button
+                  onClick={clearChecked}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Clear checked</span>
+                </button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={signOut}
+                title="Sign out"
+                className="text-muted-foreground hover:text-foreground"
               >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Clear checked</span>
-              </button>
-            )}
+                <LogOut className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
+
+          {/* User info */}
+          {profile && (
+            <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+              <Users className="w-4 h-4" />
+              <span>Signed in as {profile.display_name || profile.email}</span>
+            </div>
+          )}
 
           {/* Progress bar */}
           {totalItems > 0 && (
@@ -126,7 +118,11 @@ export function GroceryList() {
           )}
 
           {/* Input */}
-          <GroceryInput onAddItem={addItem} />
+          <GroceryInput 
+            onAddItem={addItem} 
+            searchKnownItems={searchKnownItems}
+            getFrequentItems={getFrequentItems}
+          />
         </div>
       </header>
 
@@ -139,7 +135,7 @@ export function GroceryList() {
             </div>
             <h2 className="text-xl font-serif text-foreground mb-2">Your list is empty</h2>
             <p className="text-muted-foreground max-w-sm">
-              Start adding items above. They'll be automatically organized into categories and saved for next time!
+              Start adding items above. They'll be automatically organized into categories and synced with your household!
             </p>
           </div>
         ) : (

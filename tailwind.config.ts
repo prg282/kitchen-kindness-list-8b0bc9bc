@@ -59,6 +59,7 @@ export default {
           frozen: "hsl(var(--frozen))",
           bakery: "hsl(var(--bakery))",
           beverages: "hsl(var(--beverages))",
+          spices: "hsl(var(--spices))",
           other: "hsl(var(--other))",
         },
       },
