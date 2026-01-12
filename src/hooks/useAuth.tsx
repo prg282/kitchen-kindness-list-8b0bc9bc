@@ -33,10 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select('*')
       .eq('id', userId)
       .single();
-    
-    if (data && !error) {
-      setProfile(data);
+
+    if (error) {
+      console.error('Error fetching profile:', error);
+      setProfile(null);
+      return;
     }
+
+    setProfile(data);
   };
 
   useEffect(() => {
