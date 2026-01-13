@@ -23,6 +23,7 @@ export type Database = {
           household_id: string
           id: string
           name: string
+          quantity: string | null
           updated_at: string
         }
         Insert: {
@@ -33,6 +34,7 @@ export type Database = {
           household_id: string
           id?: string
           name: string
+          quantity?: string | null
           updated_at?: string
         }
         Update: {
@@ -43,6 +45,7 @@ export type Database = {
           household_id?: string
           id?: string
           name?: string
+          quantity?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -76,6 +79,7 @@ export type Database = {
       known_items: {
         Row: {
           category: string
+          default_quantity: string | null
           household_id: string
           id: string
           last_used: string
@@ -84,6 +88,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          default_quantity?: string | null
           household_id: string
           id?: string
           last_used?: string
@@ -92,6 +97,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          default_quantity?: string | null
           household_id?: string
           id?: string
           last_used?: string

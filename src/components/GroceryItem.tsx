@@ -92,6 +92,9 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: Groce
             item.checked && "line-through text-muted-foreground cursor-default"
           )}
         >
+          {item.quantity && (
+            <span className="font-medium text-primary mr-1">{item.quantity}</span>
+          )}
           {item.name}
         </span>
       )}

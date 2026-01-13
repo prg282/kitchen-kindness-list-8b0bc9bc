@@ -28,13 +28,14 @@ export function useGroceryList() {
       return;
     }
 
-    setItems(
+  setItems(
       data.map((item) => ({
         id: item.id,
         name: item.name,
         category: item.category as CategoryType,
         checked: item.checked,
         created_by: item.created_by || undefined,
+        quantity: item.quantity || undefined,
       }))
     );
   }, [householdId]);
@@ -120,6 +121,7 @@ export function useGroceryList() {
                 category: newItem.category as CategoryType,
                 checked: newItem.checked,
                 created_by: newItem.created_by || undefined,
+                quantity: newItem.quantity || undefined,
               }];
             });
           } else if (payload.eventType === 'UPDATE') {
@@ -132,6 +134,7 @@ export function useGroceryList() {
                     category: updatedItem.category as CategoryType,
                     checked: updatedItem.checked,
                     created_by: updatedItem.created_by || undefined,
+                    quantity: updatedItem.quantity || undefined,
                   }
                 : item
             ));
@@ -149,7 +152,7 @@ export function useGroceryList() {
   }, [householdId]);
 
   // Add item
-  const addItem = async (name: string, category: CategoryType) => {
+  const addItem = async (name: string, category: CategoryType, quantity?: string) => {
     if (!householdId || !user) return;
 
     // Optimistic update
@@ -160,6 +163,7 @@ export function useGroceryList() {
       category,
       checked: false,
       created_by: user.id,
+      quantity,
     };
     setItems(prev => [...prev, newItem]);
 
@@ -171,6 +175,7 @@ export function useGroceryList() {
         category,
         checked: false,
         created_by: user.id,
+        quantity: quantity || null,
       })
       .select()
       .single();
@@ -190,6 +195,7 @@ export function useGroceryList() {
       category: data.category as CategoryType,
       checked: data.checked,
       created_by: data.created_by || undefined,
+      quantity: data.quantity || undefined,
     } : i));
 
     // Save to known items
