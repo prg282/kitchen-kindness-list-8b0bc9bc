@@ -7,13 +7,15 @@ interface GroceryItemProps {
   item: GroceryItemType;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  onEdit: (id: string, newName: string) => void;
+  onEdit: (id: string, newName: string, newQuantity?: string) => void;
 }
 
 export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: GroceryItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(item.name);
+  const [editQuantity, setEditQuantity] = useState(item.quantity || '');
   const inputRef = useRef<HTMLInputElement>(null);
+  const quantityRef = useRef<HTMLInputElement>(null);
   const categoryInfo = getCategoryInfo(item.category);
 
   useEffect(() => {
@@ -25,10 +27,12 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: Groce
 
   const handleSaveEdit = () => {
     const trimmedValue = editValue.trim();
-    if (trimmedValue && trimmedValue !== item.name) {
-      onEdit(item.id, trimmedValue);
+    const trimmedQuantity = editQuantity.trim();
+    if (trimmedValue && (trimmedValue !== item.name || trimmedQuantity !== (item.quantity || ''))) {
+      onEdit(item.id, trimmedValue, trimmedQuantity || undefined);
     } else {
-      setEditValue(item.name); // Reset if empty or unchanged
+      setEditValue(item.name);
+      setEditQuantity(item.quantity || '');
     }
     setIsEditing(false);
   };
@@ -38,6 +42,7 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: Groce
       handleSaveEdit();
     } else if (e.key === 'Escape') {
       setEditValue(item.name);
+      setEditQuantity(item.quantity || '');
       setIsEditing(false);
     }
   };
@@ -75,15 +80,26 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: Groce
       <span className="text-lg mr-1 flex-shrink-0">{categoryInfo.icon}</span>
       
       {isEditing ? (
-        <input
-          ref={inputRef}
-          type="text"
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleSaveEdit}
-          onKeyDown={handleKeyDown}
-          className="flex-1 bg-transparent border-b-2 border-primary focus:outline-none text-base py-1"
-        />
+        <div className="flex-1 flex items-center gap-2">
+          <input
+            ref={quantityRef}
+            type="text"
+            value={editQuantity}
+            onChange={(e) => setEditQuantity(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Qty"
+            className="w-14 bg-muted/50 border-b-2 border-primary focus:outline-none text-sm py-1 text-center rounded"
+          />
+          <input
+            ref={inputRef}
+            type="text"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleSaveEdit}
+            onKeyDown={handleKeyDown}
+            className="flex-1 bg-transparent border-b-2 border-primary focus:outline-none text-base py-1"
+          />
+        </div>
       ) : (
         <span
           onClick={handleStartEdit}
