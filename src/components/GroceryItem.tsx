@@ -130,22 +130,24 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: Groce
         </span>
       )}
       
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
-        {!item.checked && !isEditing && (
+      {!isEditing && (
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          {!item.checked && (
+            <button
+              onClick={handleStartEdit}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+          )}
           <button
-            onClick={handleStartEdit}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+            onClick={() => onDelete(item.id)}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
           >
-            <Pencil className="w-4 h-4" />
+            <X className="w-4 h-4" />
           </button>
-        )}
-        <button
-          onClick={() => onDelete(item.id)}
-          className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
