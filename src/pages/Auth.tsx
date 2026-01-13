@@ -8,15 +8,18 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/';
+  const isJoinFlow = redirectUrl.startsWith('/join/');
+  
+  // Default to signup mode when coming from invite link
+  const [isLogin, setIsLogin] = useState(!isJoinFlow);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || '/';
 
   useEffect(() => {
     if (user && !loading) {
@@ -80,7 +83,11 @@ export default function Auth() {
             Grocery List
           </h1>
           <p className="text-muted-foreground">
-            {isLogin ? 'Welcome back! Sign in to continue.' : 'Create an account to start your family grocery list.'}
+            {isLogin 
+              ? 'Welcome back! Sign in to continue.' 
+              : isJoinFlow 
+                ? 'Create an account to join the household.'
+                : 'Create an account to start your family grocery list.'}
           </p>
         </div>
 
