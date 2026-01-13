@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2, Home, ArrowLeft, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import InviteShare from '@/components/InviteShare';
 
 const householdSchema = z.object({
   name: z.string().trim().min(1, 'Household name is required').max(100, 'Name must be less than 100 characters'),
@@ -205,6 +206,15 @@ const Household = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Invite Members */}
+        {profile?.household_id && households.length > 0 && (
+          <InviteShare
+            householdId={profile.household_id}
+            householdName={households[0].name}
+            userId={user.id}
+          />
         )}
 
         {/* Create New Household */}

@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Household from "./pages/Household";
+import JoinHousehold from "./pages/JoinHousehold";
 import NotFound from "./pages/NotFound";
 
 // Create a stable query client instance
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/household" element={<Household />} />
+            <Route path="/join/:inviteCode" element={<JoinHousehold />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
