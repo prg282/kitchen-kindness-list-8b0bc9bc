@@ -66,6 +66,7 @@ export type Database = {
           household_id: string
           id: string
           invite_code: string
+          pin: string
           used_at: string | null
           used_by: string | null
         }
@@ -76,6 +77,7 @@ export type Database = {
           household_id: string
           id?: string
           invite_code?: string
+          pin?: string
           used_at?: string | null
           used_by?: string | null
         }
@@ -86,6 +88,7 @@ export type Database = {
           household_id?: string
           id?: string
           invite_code?: string
+          pin?: string
           used_at?: string | null
           used_by?: string | null
         }

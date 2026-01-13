@@ -3,130 +3,83 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Home, Check, X, UserPlus } from 'lucide-react';
+import { Loader2, Home, X, UserPlus, KeyRound, User } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Invitation {
-  id: string;
-  invite_code: string;
-  expires_at: string;
-  used_by: string | null;
-  household: {
-    id: string;
-    name: string;
-  };
-}
 
 const JoinHousehold = () => {
   const { inviteCode } = useParams<{ inviteCode: string }>();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [invitation, setInvitation] = useState<Invitation | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [pin, setPin] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // If user is already logged in, redirect to home
   useEffect(() => {
-    if (!authLoading && !user) {
-      // Redirect to auth with return URL
-      navigate(`/auth?redirect=/join/${inviteCode}`);
+    if (!authLoading && user) {
+      navigate('/');
     }
-  }, [user, authLoading, navigate, inviteCode]);
+  }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    if (user && inviteCode) {
-      fetchInvitation();
+  const handleJoin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!inviteCode || !pin) {
+      toast.error('Please enter the PIN code');
+      return;
     }
-  }, [user, inviteCode]);
 
-  const fetchInvitation = async () => {
-    setLoading(true);
+    setJoining(true);
     setError(null);
 
     try {
-      const { data, error } = await supabase
-        .from('household_invitations')
-        .select(`
-          id,
-          invite_code,
-          expires_at,
-          used_by,
-          household:households (
-            id,
-            name
-          )
-        `)
-        .eq('invite_code', inviteCode)
-        .single();
-
-      if (error) throw error;
-
-      // Check if invitation is valid
-      if (data.used_by) {
-        setError('This invitation has already been used.');
-        return;
-      }
-
-      const expiresAt = new Date(data.expires_at);
-      if (expiresAt < new Date()) {
-        setError('This invitation has expired.');
-        return;
-      }
-
-      // Transform the data to match our interface
-      const household = Array.isArray(data.household) ? data.household[0] : data.household;
-      
-      setInvitation({
-        ...data,
-        household: household as { id: string; name: string },
+      const response = await supabase.functions.invoke('join-household', {
+        body: {
+          inviteCode,
+          pin,
+          displayName: displayName.trim() || undefined,
+        },
       });
-    } catch (err: any) {
-      console.error('Error fetching invitation:', err);
-      setError('Invalid or expired invitation link.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleJoin = async () => {
-    if (!invitation || !user) return;
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to join household');
+      }
 
-    setJoining(true);
+      const data = response.data;
 
-    try {
-      // Update user's profile to join the household
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ household_id: invitation.household.id })
-        .eq('id', user.id);
+      if (data.error) {
+        throw new Error(data.error);
+      }
 
-      if (profileError) throw profileError;
+      if (data.session) {
+        // Set the session in Supabase client
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
 
-      // Mark invitation as used
-      const { error: inviteError } = await supabase
-        .from('household_invitations')
-        .update({
-          used_by: user.id,
-          used_at: new Date().toISOString(),
-        })
-        .eq('id', invitation.id);
-
-      if (inviteError) throw inviteError;
-
-      toast.success(`You've joined "${invitation.household.name}"!`);
-      
-      // Redirect to home and reload to get new profile data
-      window.location.href = '/';
+        toast.success(`Welcome! You've joined "${data.household?.name || 'the household'}"!`);
+        
+        // Redirect to home with full reload to ensure session is picked up
+        window.location.href = '/';
+      } else {
+        throw new Error('No session returned');
+      }
     } catch (err: any) {
       console.error('Error joining household:', err);
-      toast.error(err.message || 'Failed to join household');
+      const errorMessage = err.message || 'Failed to join household';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setJoining(false);
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -134,11 +87,10 @@ const JoinHousehold = () => {
     );
   }
 
-  if (!user) {
+  // Don't show anything if user is already logged in (will redirect)
+  if (user) {
     return null;
   }
-
-  const isAlreadyMember = profile?.household_id === invitation?.household.id;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -151,78 +103,83 @@ const JoinHousehold = () => {
               <UserPlus className="w-8 h-8 text-primary" />
             )}
           </div>
-          <CardTitle>
-            {error ? 'Invalid Invitation' : 'Join Household'}
-          </CardTitle>
+          <CardTitle>Join Household</CardTitle>
           <CardDescription>
-            {error 
-              ? error 
-              : isAlreadyMember
-                ? "You're already a member of this household"
-                : `You've been invited to join a household`
-            }
+            Enter the PIN code shared with you to join the household
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {error ? (
-            <Button 
-              className="w-full" 
-              onClick={() => navigate('/')}
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go to Home
-            </Button>
-          ) : invitation && (
-            <>
-              <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                <Home className="w-6 h-6 mx-auto mb-2 text-primary" />
-                <p className="font-medium text-lg">{invitation.household.name}</p>
+        <CardContent>
+          <form onSubmit={handleJoin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="displayName" className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Your Name (optional)
+              </Label>
+              <Input
+                id="displayName"
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Enter your name"
+                disabled={joining}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="pin" className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4" />
+                PIN Code
+              </Label>
+              <Input
+                id="pin"
+                type="text"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="Enter the 6-character PIN"
+                maxLength={6}
+                className="text-center text-2xl tracking-widest font-mono"
+                disabled={joining}
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                {error}
               </div>
+            )}
 
-              {isAlreadyMember ? (
-                <Button 
-                  className="w-full" 
-                  onClick={() => navigate('/')}
-                >
-                  <Check className="w-4 h-4 mr-2" />
-                  Go to Grocery List
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <Button 
-                    className="w-full" 
-                    onClick={handleJoin}
-                    disabled={joining}
-                  >
-                    {joining ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Joining...
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Join Household
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => navigate('/')}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              )}
-
-              {!isAlreadyMember && profile?.household_id && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Note: Joining this household will switch you from your current household.
-                </p>
-              )}
-            </>
-          )}
+            <div className="space-y-2 pt-2">
+              <Button 
+                type="submit"
+                className="w-full" 
+                disabled={joining || !pin}
+              >
+                {joining ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Joining...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Join Household
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                type="button"
+                variant="outline" 
+                className="w-full"
+                onClick={() => navigate('/')}
+                disabled={joining}
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Go to Home
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>
