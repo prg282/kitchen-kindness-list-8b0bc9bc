@@ -1,4 +1,5 @@
-import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Loader2 } from 'lucide-react';
+import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Loader2, Home } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { GroceryInput } from './GroceryInput';
 import { CategorySection } from './CategorySection';
 import { CategoryType, categories } from '@/lib/groceryCategories';
@@ -7,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 
 export function GroceryList() {
+  const navigate = useNavigate();
   const { 
     items, 
     loading, 
@@ -77,6 +79,15 @@ export function GroceryList() {
                   <span className="hidden sm:inline">Clear checked</span>
                 </button>
               )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/household')}
+                title="Household settings"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Home className="w-5 h-5" />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"
