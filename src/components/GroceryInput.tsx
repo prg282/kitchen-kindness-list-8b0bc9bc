@@ -4,13 +4,14 @@ import { categorizeItem, getCategoryInfo, CategoryType, KnownItem } from '@/lib/
 import { cn } from '@/lib/utils';
 
 interface GroceryInputProps {
-  onAddItem: (name: string, category: CategoryType) => void;
+  onAddItem: (name: string, category: CategoryType, quantity?: string) => void;
   searchKnownItems: (query: string) => KnownItem[];
   getFrequentItems: (limit?: number) => KnownItem[];
 }
 
 export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: GroceryInputProps) {
   const [value, setValue] = useState('');
+  const [quantity, setQuantity] = useState('');
   const [previewCategory, setPreviewCategory] = useState<CategoryType | null>(null);
   const [suggestions, setSuggestions] = useState<KnownItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -36,16 +37,18 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
     e.preventDefault();
     if (value.trim()) {
       const category = categorizeItem(value.trim());
-      onAddItem(value.trim(), category);
+      onAddItem(value.trim(), category, quantity.trim() || undefined);
       setValue('');
+      setQuantity('');
       setPreviewCategory(null);
       setShowSuggestions(false);
     }
   };
 
   const handleSelectSuggestion = (item: KnownItem) => {
-    onAddItem(item.name, item.category);
+    onAddItem(item.name, item.category, quantity.trim() || undefined);
     setValue('');
+    setQuantity('');
     setPreviewCategory(null);
     setShowSuggestions(false);
     inputRef.current?.focus();
@@ -94,6 +97,13 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
     <form onSubmit={handleSubmit} className="relative">
       <div className="relative flex items-center gap-3 bg-card rounded-lg shadow-medium p-2 border border-border/50 transition-all duration-200 focus-within:shadow-elevated focus-within:border-primary/30">
         <input
+          type="text"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          placeholder="Qty"
+          className="w-16 bg-muted/50 px-2 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-base rounded-md text-center"
+        />
+        <input
           ref={inputRef}
           type="text"
           value={value}
@@ -101,7 +111,7 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder="Add an item... (e.g., apples, milk, cumin)"
+          placeholder="Add an item... (e.g., apples, milk)"
           className="flex-1 bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-lg"
         />
         {categoryInfo && (

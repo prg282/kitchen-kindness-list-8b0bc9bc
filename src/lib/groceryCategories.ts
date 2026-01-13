@@ -15,6 +15,7 @@ export interface GroceryItem {
   category: CategoryType;
   checked: boolean;
   created_by?: string;
+  quantity?: string;
 }
 
 export interface KnownItem {
