@@ -1,1 +1,4 @@
 project_id = "hsdhzklhkxpawoasxtex"
+
+[functions.join-household]
+verify_jwt = false
