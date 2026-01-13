@@ -41,10 +41,14 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: Groce
     if (e.key === 'Enter') {
       handleSaveEdit();
     } else if (e.key === 'Escape') {
-      setEditValue(item.name);
-      setEditQuantity(item.quantity || '');
-      setIsEditing(false);
+      handleCancelEdit();
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditValue(item.name);
+    setEditQuantity(item.quantity || '');
+    setIsEditing(false);
   };
 
   const handleStartEdit = (e: React.MouseEvent) => {
@@ -95,10 +99,21 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit }: Groce
             type="text"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleSaveEdit}
             onKeyDown={handleKeyDown}
             className="flex-1 bg-transparent border-b-2 border-primary focus:outline-none text-base py-1"
           />
+          <button
+            onClick={handleSaveEdit}
+            className="p-1.5 rounded-md text-primary hover:bg-primary/10 transition-all duration-200"
+          >
+            <Check className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleCancelEdit}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       ) : (
         <span
