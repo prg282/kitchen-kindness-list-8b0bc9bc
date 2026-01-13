@@ -296,7 +296,7 @@ export function useGroceryList() {
   };
 
   // Edit item
-  const editItem = async (id: string, newName: string) => {
+  const editItem = async (id: string, newName: string, newQuantity?: string) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
@@ -304,12 +304,12 @@ export function useGroceryList() {
     
     // Optimistic update
     setItems(prev => prev.map(i => 
-      i.id === id ? { ...i, name: newName, category: newCategory } : i
+      i.id === id ? { ...i, name: newName, category: newCategory, quantity: newQuantity } : i
     ));
 
     const { error } = await supabase
       .from('grocery_items')
-      .update({ name: newName, category: newCategory })
+      .update({ name: newName, category: newCategory, quantity: newQuantity || null })
       .eq('id', id);
 
     if (error) {
