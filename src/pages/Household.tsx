@@ -68,10 +68,14 @@ const Household = () => {
 
   const handleCreateHousehold = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setError('');
+    
+    console.log('Creating household with name:', newHouseholdName);
 
     const validation = householdSchema.safeParse({ name: newHouseholdName });
     if (!validation.success) {
+      console.log('Validation failed:', validation.error.errors[0].message);
       setError(validation.error.errors[0].message);
       return;
     }
@@ -278,7 +282,13 @@ const Household = () => {
                 </div>
               </form>
             ) : (
-              <Button onClick={() => setShowCreateForm(true)}>
+              <Button 
+                type="button"
+                onClick={() => {
+                  console.log('Create New Household button clicked');
+                  setShowCreateForm(true);
+                }}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create New Household
               </Button>
