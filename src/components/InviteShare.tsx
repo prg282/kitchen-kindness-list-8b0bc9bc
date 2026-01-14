@@ -130,21 +130,21 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
           </Button>
         ) : (
           <div className="space-y-4">
-            <div className="p-3 rounded-lg bg-muted border border-border">
-              <p className="text-xs text-muted-foreground mb-1">Invite Link</p>
-              <p className="text-sm font-mono break-all text-foreground">
+            <div className="p-2 sm:p-3 rounded-lg bg-muted border border-border">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Invite Link</p>
+              <p className="text-[11px] sm:text-sm font-mono break-all text-foreground">
                 {getInviteUrl()}
               </p>
             </div>
             
-            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                    <KeyRound className="w-3 h-3" />
-                    PIN Code (share separately for security)
+            <div className="p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                    <KeyRound className="w-3 h-3 shrink-0" />
+                    <span className="truncate">PIN Code (share separately)</span>
                   </p>
-                  <p className="text-2xl font-mono font-bold tracking-widest text-primary">
+                  <p className="text-lg sm:text-2xl font-mono font-bold tracking-widest text-primary">
                     {invitePin}
                   </p>
                 </div>
@@ -163,22 +163,23 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={copyToClipboard}
-                className="flex-1 min-w-[120px]"
+                className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3"
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Copied!
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span className="hidden xs:inline">Copied!</span>
+                    <span className="xs:hidden">✓</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Link
+                    <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    <span>Copy</span>
                   </>
                 )}
               </Button>
@@ -188,9 +189,9 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
                   variant="outline"
                   size="sm"
                   onClick={shareViaWebShare}
-                  className="flex-1 min-w-[120px]"
+                  className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3"
                 >
-                  <Share2 className="w-4 h-4 mr-2" />
+                  <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                   Share
                 </Button>
               )}
@@ -199,25 +200,26 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
                 variant="outline"
                 size="sm"
                 onClick={shareViaWhatsApp}
-                className="flex-1 min-w-[120px] text-green-600 hover:text-green-700 hover:bg-green-50"
+                className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3 text-green-600 hover:text-green-700 hover:bg-green-50"
               >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp
+                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">WhatsApp</span>
+                <span className="xs:hidden">WA</span>
               </Button>
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={shareViaEmail}
-                className="flex-1 min-w-[120px]"
+                className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3"
               >
-                <Mail className="w-4 h-4 mr-2" />
+                <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                 Email
               </Button>
             </div>
 
-            <p className="text-xs text-muted-foreground">
-              This invite link expires in 7 days. The invitee will need the PIN to join. Generate a new one if needed.
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Link expires in 7 days. PIN required to join.
             </p>
 
             <Button
