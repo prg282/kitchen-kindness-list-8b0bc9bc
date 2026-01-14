@@ -65,7 +65,7 @@ export function GroceryList() {
                 <h1 className="text-2xl sm:text-3xl font-serif text-foreground">Grocery List</h1>
                 <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  Smart auto-categorization • Synced with family
+                  Smart auto-categorisation • Synced with household
                 </p>
               </div>
             </div>
@@ -146,7 +146,7 @@ export function GroceryList() {
             </div>
             <h2 className="text-xl font-serif text-foreground mb-2">Your list is empty</h2>
             <p className="text-muted-foreground max-w-sm">
-              Start adding items above. They'll be automatically organized into categories and synced with your household!
+              Start adding items above. They'll be automatically organised into categories and synced with your household!
             </p>
           </div>
         ) : (

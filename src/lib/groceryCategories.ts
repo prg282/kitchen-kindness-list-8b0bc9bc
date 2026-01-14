@@ -36,17 +36,17 @@ export interface Category {
 export const categories: Category[] = [
   {
     id: 'produce',
-    name: 'Produce',
+    name: 'Fruit & Veg',
     icon: '🥬',
     keywords: [
       'apple', 'banana', 'orange', 'lemon', 'lime', 'grape', 'strawberry', 'blueberry',
       'raspberry', 'blackberry', 'mango', 'pineapple', 'watermelon', 'cantaloupe', 'peach',
       'pear', 'plum', 'cherry', 'kiwi', 'avocado', 'tomato', 'cucumber', 'carrot', 'celery',
       'lettuce', 'spinach', 'kale', 'broccoli', 'cauliflower', 'pepper', 'onion', 'garlic',
-      'potato', 'sweet potato', 'corn', 'zucchini', 'squash', 'mushroom', 'asparagus',
-      'green bean', 'pea', 'cabbage', 'radish', 'beet', 'eggplant', 'artichoke', 'leek',
-      'herb', 'basil', 'cilantro', 'parsley', 'mint', 'ginger', 'jalapeño', 'fruit', 'vegetable',
-      'salad', 'greens', 'arugula', 'romaine'
+      'potato', 'sweet potato', 'corn', 'courgette', 'zucchini', 'squash', 'mushroom', 'asparagus',
+      'green bean', 'runner bean', 'pea', 'cabbage', 'radish', 'beetroot', 'beet', 'aubergine', 'eggplant', 'artichoke', 'leek',
+      'herb', 'basil', 'coriander', 'cilantro', 'parsley', 'mint', 'ginger', 'jalapeño', 'chilli', 'fruit', 'vegetable', 'veg',
+      'salad', 'greens', 'rocket', 'arugula', 'romaine', 'spring onion'
     ],
   },
   {
@@ -54,10 +54,10 @@ export const categories: Category[] = [
     name: 'Dairy & Eggs',
     icon: '🥛',
     keywords: [
-      'milk', 'cheese', 'yogurt', 'butter', 'cream', 'egg', 'cottage cheese', 'sour cream',
+      'milk', 'cheese', 'yoghurt', 'yogurt', 'butter', 'cream', 'egg', 'cottage cheese', 'sour cream',
       'cream cheese', 'mozzarella', 'cheddar', 'parmesan', 'feta', 'brie', 'gouda',
-      'half and half', 'whipping cream', 'almond milk', 'oat milk', 'soy milk', 'coconut milk',
-      'greek yogurt', 'kefir', 'ghee', 'margarine'
+      'half and half', 'whipping cream', 'almond milk', 'oat milk', 'soya milk', 'soy milk', 'coconut milk',
+      'greek yoghurt', 'greek yogurt', 'kefir', 'ghee', 'margarine'
     ],
   },
   {
@@ -66,7 +66,7 @@ export const categories: Category[] = [
     icon: '🥩',
     keywords: [
       'chicken', 'beef', 'pork', 'turkey', 'lamb', 'bacon', 'sausage', 'ham', 'steak',
-      'ground beef', 'ground turkey', 'fish', 'salmon', 'tuna', 'shrimp', 'crab', 'lobster',
+      'mince', 'minced beef', 'minced turkey', 'ground beef', 'ground turkey', 'fish', 'salmon', 'tuna', 'prawns', 'shrimp', 'crab', 'lobster',
       'scallop', 'cod', 'tilapia', 'halibut', 'trout', 'mahi', 'duck', 'veal', 'ribs',
       'brisket', 'tenderloin', 'wing', 'thigh', 'breast', 'drumstick', 'hot dog', 'deli meat',
       'pepperoni', 'salami', 'prosciutto', 'anchovies', 'mussels', 'clam', 'oyster', 'calamari'
@@ -92,15 +92,15 @@ export const categories: Category[] = [
   },
   {
     id: 'pantry',
-    name: 'Pantry',
+    name: 'Cupboard',
     icon: '🫙',
     keywords: [
       'rice', 'pasta', 'bread', 'flour', 'sugar', 'oil', 'olive oil',
       'vinegar', 'soy sauce', 'ketchup', 'mustard', 'mayo', 'mayonnaise', 'sauce',
-      'cereal', 'oatmeal', 'granola', 'nut', 'almond', 'peanut', 'walnut',
-      'cashew', 'seed', 'bean', 'lentil', 'chickpea', 'canned', 'tomato sauce', 'broth',
-      'stock', 'soup', 'noodle', 'cracker', 'chip', 'pretzel', 'popcorn', 'snack', 'cookie',
-      'candy', 'chocolate', 'honey', 'maple syrup', 'jam', 'jelly', 'peanut butter',
+      'cereal', 'porridge', 'oatmeal', 'granola', 'nut', 'almond', 'peanut', 'walnut',
+      'cashew', 'seed', 'bean', 'lentil', 'chickpea', 'tinned', 'canned', 'tomato sauce', 'broth',
+      'stock', 'soup', 'noodle', 'cracker', 'crisp', 'chip', 'pretzel', 'popcorn', 'snack', 'biscuit', 'cookie',
+      'sweets', 'candy', 'chocolate', 'honey', 'golden syrup', 'maple syrup', 'jam', 'jelly', 'marmalade', 'peanut butter',
       'nutella', 'tortilla', 'wrap', 'taco', 'quinoa', 'couscous', 'breadcrumb'
     ],
   },
@@ -110,7 +110,7 @@ export const categories: Category[] = [
     icon: '❄️',
     keywords: [
       'frozen', 'ice cream', 'pizza', 'frozen vegetable', 'frozen fruit', 'frozen meal',
-      'frozen dinner', 'popsicle', 'sorbet', 'gelato', 'frozen yogurt', 'waffle', 'pancake',
+      'frozen dinner', 'ice lolly', 'lolly', 'popsicle', 'sorbet', 'gelato', 'frozen yoghurt', 'frozen yogurt', 'waffle', 'pancake',
       'frozen fish', 'frozen chicken', 'frozen beef', 'ice', 'frozen berry', 'frozen pizza'
     ],
   },
@@ -126,13 +126,13 @@ export const categories: Category[] = [
   },
   {
     id: 'beverages',
-    name: 'Beverages',
+    name: 'Drinks',
     icon: '🧃',
     keywords: [
-      'water', 'juice', 'soda', 'pop', 'coffee', 'tea', 'beer', 'wine', 'alcohol', 'liquor',
+      'water', 'juice', 'fizzy drink', 'soda', 'pop', 'coffee', 'tea', 'beer', 'wine', 'alcohol', 'liquor',
       'sparkling water', 'seltzer', 'lemonade', 'iced tea', 'energy drink', 'sports drink',
       'smoothie', 'kombucha', 'coconut water', 'apple juice', 'orange juice', 'grape juice',
-      'cranberry juice', 'espresso', 'cold brew', 'chai', 'matcha', 'hot chocolate', 'cocoa'
+      'cranberry juice', 'espresso', 'cold brew', 'chai', 'matcha', 'hot chocolate', 'cocoa', 'squash', 'cordial'
     ],
   },
 ];
