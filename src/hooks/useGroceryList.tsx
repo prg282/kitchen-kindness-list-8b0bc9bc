@@ -155,6 +155,25 @@ export function useGroceryList() {
   const addItem = async (name: string, category: CategoryType, quantity?: string) => {
     if (!householdId || !user) return;
 
+    // Check if item already exists (case-insensitive)
+    const normalizedName = name.toLowerCase().trim();
+    const existingItem = items.find(
+      item => item.name.toLowerCase().trim() === normalizedName
+    );
+
+    if (existingItem) {
+      // If item exists and is checked, uncheck it; otherwise just update usage count
+      if (existingItem.checked) {
+        await toggleItem(existingItem.id);
+        toast.success(`${existingItem.name} added back to list`);
+      } else {
+        toast.info(`${existingItem.name} is already on your list`);
+      }
+      // Still update known items usage
+      await saveKnownItem(name, category);
+      return;
+    }
+
     // Optimistic update
     const tempId = crypto.randomUUID();
     const newItem: GroceryItem = {
