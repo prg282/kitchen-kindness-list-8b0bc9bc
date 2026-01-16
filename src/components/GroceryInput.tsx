@@ -95,13 +95,13 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
 
   return (
     <form onSubmit={handleSubmit} className="relative">
-      <div className="relative flex items-center gap-3 bg-card rounded-lg shadow-medium p-2 border border-border/50 transition-all duration-200 focus-within:shadow-elevated focus-within:border-primary/30">
+      <div className="relative flex items-center gap-2 md:gap-3 bg-card rounded-lg shadow-medium p-1.5 md:p-2 border border-border/50 transition-all duration-200 focus-within:shadow-elevated focus-within:border-primary/30">
         <input
           type="text"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
           placeholder="Qty"
-          className="w-16 bg-muted/50 px-2 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-base rounded-md text-center"
+          className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
         />
         <input
           ref={inputRef}
@@ -111,11 +111,11 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder="Add an item... (e.g., apples, milk)"
-          className="flex-1 bg-transparent px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-lg"
+          placeholder="Add an item..."
+          className="flex-1 bg-transparent px-2 md:px-4 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-base md:text-lg"
         />
         {categoryInfo && (
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/50 text-sm text-accent-foreground animate-fade-in-up">
+          <div className="hidden sm:flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-accent/50 text-xs md:text-sm text-accent-foreground animate-fade-in-up">
             <span>{categoryInfo.icon}</span>
             <span className="font-medium">{categoryInfo.name}</span>
           </div>
@@ -123,20 +123,20 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
         <button
           type="submit"
           disabled={!value.trim()}
-          className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary text-primary-foreground transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-soft hover:shadow-medium"
+          className="flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-lg bg-primary text-primary-foreground transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-soft hover:shadow-medium"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5 md:w-6 md:h-6" />
         </button>
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
         <div 
           ref={suggestionsRef}
-          className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/50 rounded-lg shadow-elevated z-20 overflow-hidden animate-fade-in"
+          className="absolute top-full left-0 right-0 mt-1.5 md:mt-2 bg-card border border-border/50 rounded-lg shadow-elevated z-20 overflow-hidden animate-fade-in"
         >
           {!value.trim() && (
-            <div className="px-4 py-2 text-xs font-medium text-muted-foreground bg-muted/50 flex items-center gap-2">
-              <History className="w-3 h-3" />
+            <div className="px-3 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-medium text-muted-foreground bg-muted/50 flex items-center gap-1.5 md:gap-2">
+              <History className="w-2.5 h-2.5 md:w-3 md:h-3" />
               Recent items
             </div>
           )}
@@ -148,15 +148,15 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
                 type="button"
                 onClick={() => handleSelectSuggestion(item)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors duration-150",
+                  "w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 text-left transition-colors duration-150",
                   index === selectedIndex 
                     ? "bg-primary/10" 
                     : "hover:bg-muted/50"
                 )}
               >
-                <span className="text-lg">{itemCategoryInfo.icon}</span>
-                <span className="flex-1 text-foreground">{item.name}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-base md:text-lg">{itemCategoryInfo.icon}</span>
+                <span className="flex-1 text-sm md:text-base text-foreground">{item.name}</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground">
                   {item.usage_count > 1 ? `${item.usage_count}x` : ''}
                 </span>
               </button>
