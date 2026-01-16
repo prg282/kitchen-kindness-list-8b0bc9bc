@@ -5,6 +5,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Rate limiting constants
+const MAX_REQUESTS_PER_HOUR = 5;
+const MAX_FAILED_PIN_ATTEMPTS = 3;
+const RATE_LIMIT_WINDOW_HOURS = 1;
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -12,9 +17,31 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get client IP for rate limiting
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+
+    // Create admin client with service role
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Check IP-based rate limit
+    const rateLimitCheck = await checkRateLimit(supabaseAdmin, clientIp, 'join-household');
+    if (!rateLimitCheck.allowed) {
+      console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+      return new Response(
+        JSON.stringify({ error: 'Too many attempts. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { inviteCode, pin, displayName } = await req.json();
     
-    console.log('Join household request received:', { inviteCode, pin: '***', displayName });
+    console.log('Join household request received:', { inviteCode, pin: '***', displayName, clientIp: clientIp.substring(0, 8) + '...' });
 
     if (!inviteCode || !pin) {
       console.error('Missing required fields');
@@ -24,12 +51,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Create admin client with service role
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    // Check if invite code has too many failed PIN attempts
+    const failedAttemptsCheck = await checkFailedAttempts(supabaseAdmin, inviteCode);
+    if (!failedAttemptsCheck.allowed) {
+      console.warn(`Invite code ${inviteCode.substring(0, 8)}... has been locked due to too many failed attempts`);
+      return new Response(
+        JSON.stringify({ error: 'This invitation has been locked due to too many failed attempts. Please request a new invitation.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Fetch and validate invitation
     console.log('Fetching invitation...');
@@ -61,6 +91,8 @@ Deno.serve(async (req) => {
     // Validate PIN
     if (invitation.pin !== pin) {
       console.error('Invalid PIN provided');
+      // Record failed attempt
+      await recordFailedPinAttempt(supabaseAdmin, inviteCode);
       return new Response(
         JSON.stringify({ error: 'Invalid PIN' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -144,6 +176,12 @@ Deno.serve(async (req) => {
       console.error('Failed to mark invitation as used:', updateError);
     }
 
+    // Clean up failed attempts record for this invite code (successful join)
+    await supabaseAdmin
+      .from('invite_failed_attempts')
+      .delete()
+      .eq('invite_code', inviteCode);
+
     // Sign in the user to get session
     console.log('Signing in user...');
     const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
@@ -192,3 +230,127 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+// Check IP-based rate limiting
+async function checkRateLimit(supabase: any, identifier: string, action: string): Promise<{ allowed: boolean }> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
+  
+  try {
+    // Check existing rate limit record
+    const { data: existing, error: fetchError } = await supabase
+      .from('rate_limits')
+      .select('attempt_count, first_attempt_at')
+      .eq('identifier', identifier)
+      .eq('action', action)
+      .gte('first_attempt_at', windowStart)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Rate limit check error:', fetchError);
+      // Allow on error to prevent blocking legitimate users
+      return { allowed: true };
+    }
+
+    if (existing) {
+      // Check if within limit
+      if (existing.attempt_count >= MAX_REQUESTS_PER_HOUR) {
+        return { allowed: false };
+      }
+      
+      // Increment counter
+      await supabase
+        .from('rate_limits')
+        .update({ 
+          attempt_count: existing.attempt_count + 1,
+          last_attempt_at: new Date().toISOString()
+        })
+        .eq('identifier', identifier)
+        .eq('action', action);
+    } else {
+      // Clean up old entries and create new record
+      await supabase
+        .from('rate_limits')
+        .delete()
+        .eq('identifier', identifier)
+        .eq('action', action);
+        
+      await supabase
+        .from('rate_limits')
+        .insert({
+          identifier,
+          action,
+          attempt_count: 1,
+          first_attempt_at: new Date().toISOString(),
+          last_attempt_at: new Date().toISOString()
+        });
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Rate limit error:', error);
+    // Allow on error to prevent blocking legitimate users
+    return { allowed: true };
+  }
+}
+
+// Check failed PIN attempts for invite code
+async function checkFailedAttempts(supabase: any, inviteCode: string): Promise<{ allowed: boolean }> {
+  try {
+    const { data: existing, error } = await supabase
+      .from('invite_failed_attempts')
+      .select('failed_count')
+      .eq('invite_code', inviteCode)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Failed attempts check error:', error);
+      return { allowed: true };
+    }
+
+    if (existing && existing.failed_count >= MAX_FAILED_PIN_ATTEMPTS) {
+      return { allowed: false };
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Failed attempts error:', error);
+    return { allowed: true };
+  }
+}
+
+// Record a failed PIN attempt
+async function recordFailedPinAttempt(supabase: any, inviteCode: string): Promise<void> {
+  try {
+    const { data: existing, error: fetchError } = await supabase
+      .from('invite_failed_attempts')
+      .select('failed_count')
+      .eq('invite_code', inviteCode)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Record failed attempt fetch error:', fetchError);
+      return;
+    }
+
+    if (existing) {
+      await supabase
+        .from('invite_failed_attempts')
+        .update({ 
+          failed_count: existing.failed_count + 1,
+          last_failed_at: new Date().toISOString()
+        })
+        .eq('invite_code', inviteCode);
+    } else {
+      await supabase
+        .from('invite_failed_attempts')
+        .insert({
+          invite_code: inviteCode,
+          failed_count: 1,
+          first_failed_at: new Date().toISOString(),
+          last_failed_at: new Date().toISOString()
+        });
+    }
+  } catch (error) {
+    console.error('Record failed attempt error:', error);
+  }
+}

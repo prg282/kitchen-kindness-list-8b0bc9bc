@@ -120,6 +120,30 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_failed_attempts: {
+        Row: {
+          failed_count: number
+          first_failed_at: string
+          id: string
+          invite_code: string
+          last_failed_at: string
+        }
+        Insert: {
+          failed_count?: number
+          first_failed_at?: string
+          id?: string
+          invite_code: string
+          last_failed_at?: string
+        }
+        Update: {
+          failed_count?: number
+          first_failed_at?: string
+          id?: string
+          invite_code?: string
+          last_failed_at?: string
+        }
+        Relationships: []
+      }
       known_items: {
         Row: {
           category: string
@@ -190,12 +214,39 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          action: string
+          attempt_count: number
+          first_attempt_at: string
+          id: string
+          identifier: string
+          last_attempt_at: string
+        }
+        Insert: {
+          action: string
+          attempt_count?: number
+          first_attempt_at?: string
+          id?: string
+          identifier: string
+          last_attempt_at?: string
+        }
+        Update: {
+          action?: string
+          attempt_count?: number
+          first_attempt_at?: string
+          id?: string
+          identifier?: string
+          last_attempt_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
