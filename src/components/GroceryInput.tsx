@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, History } from 'lucide-react';
+import { Plus, History, X } from 'lucide-react';
 import { categorizeItem, getCategoryInfo, CategoryType, KnownItem } from '@/lib/groceryCategories';
 import { cn } from '@/lib/utils';
 
@@ -7,9 +7,10 @@ interface GroceryInputProps {
   onAddItem: (name: string, category: CategoryType, quantity?: string) => void;
   searchKnownItems: (query: string) => KnownItem[];
   getFrequentItems: (limit?: number) => KnownItem[];
+  onDeleteKnownItem?: (id: string) => void;
 }
 
-export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: GroceryInputProps) {
+export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, onDeleteKnownItem }: GroceryInputProps) {
   const [value, setValue] = useState('');
   const [quantity, setQuantity] = useState('');
   const [previewCategory, setPreviewCategory] = useState<CategoryType | null>(null);
@@ -143,23 +144,40 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems }: 
           {suggestions.map((item, index) => {
             const itemCategoryInfo = getCategoryInfo(item.category);
             return (
-              <button
+              <div
                 key={item.id}
-                type="button"
-                onClick={() => handleSelectSuggestion(item)}
                 className={cn(
-                  "w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 text-left transition-colors duration-150",
+                  "flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 transition-colors duration-150",
                   index === selectedIndex 
                     ? "bg-primary/10" 
                     : "hover:bg-muted/50"
                 )}
               >
-                <span className="text-base md:text-lg">{itemCategoryInfo.icon}</span>
-                <span className="flex-1 text-sm md:text-base text-foreground">{item.name}</span>
-                <span className="text-[10px] md:text-xs text-muted-foreground">
-                  {item.usage_count > 1 ? `${item.usage_count}x` : ''}
-                </span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectSuggestion(item)}
+                  className="flex-1 flex items-center gap-2 md:gap-3 text-left"
+                >
+                  <span className="text-base md:text-lg">{itemCategoryInfo.icon}</span>
+                  <span className="flex-1 text-sm md:text-base text-foreground">{item.name}</span>
+                  <span className="text-[10px] md:text-xs text-muted-foreground">
+                    {item.usage_count > 1 ? `${item.usage_count}x` : ''}
+                  </span>
+                </button>
+                {onDeleteKnownItem && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteKnownItem(item.id);
+                    }}
+                    className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                    title="Remove from history"
+                  >
+                    <X className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>

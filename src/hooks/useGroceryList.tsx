@@ -384,6 +384,29 @@ export function useGroceryList() {
       .slice(0, limit);
   };
 
+  // Delete known item
+  const deleteKnownItem = async (id: string) => {
+    const item = knownItems.find(i => i.id === id);
+    if (!item) return;
+
+    // Optimistic update
+    setKnownItems(prev => prev.filter(i => i.id !== id));
+
+    const { error } = await supabase
+      .from('known_items')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting known item:', error);
+      toast.error('Failed to remove item from history');
+      // Rollback
+      setKnownItems(prev => [...prev, item]);
+    } else {
+      toast.success(`Removed "${item.name}" from history`);
+    }
+  };
+
   return {
     items,
     loading,
@@ -394,5 +417,6 @@ export function useGroceryList() {
     clearChecked,
     searchKnownItems,
     getFrequentItems,
+    deleteKnownItem,
   };
 }
