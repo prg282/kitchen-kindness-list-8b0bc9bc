@@ -110,7 +110,7 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
           Invite Members
         </CardTitle>
         <CardDescription>
-          Share an invite link and PIN to let others join your household
+          Generate a secure invite link and PIN to allow family members or roommates to join your household. Once they join, you'll share the same grocery list in real-time.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
