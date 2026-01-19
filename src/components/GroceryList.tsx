@@ -19,6 +19,7 @@ export function GroceryList() {
     clearChecked,
     searchKnownItems,
     getFrequentItems,
+    deleteKnownItem,
   } = useGroceryList();
   
   const { profile, signOut } = useAuth();
@@ -133,6 +134,7 @@ export function GroceryList() {
             onAddItem={addItem} 
             searchKnownItems={searchKnownItems}
             getFrequentItems={getFrequentItems}
+            onDeleteKnownItem={deleteKnownItem}
           />
         </div>
       </header>
