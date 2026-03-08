@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, History, X } from 'lucide-react';
 import { categorizeItem, getCategoryInfo, CategoryType, KnownItem } from '@/lib/groceryCategories';
+import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 
 interface GroceryInputProps {
