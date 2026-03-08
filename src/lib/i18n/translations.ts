@@ -144,7 +144,7 @@ const af: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Premium kenmerk',
   'settings.premiumUpgrade': 'Gradeer op na Premium om taalinstellings en meer te ontsluit!',
-  'settings.upgradeButton': 'Gradeer op na Premium — £1.99/m',
+  'settings.upgradeButton': 'Gradeer op na Premium — R49.99/m',
   'loading.groceryList': 'Laai jou kruideniersware lys...',
 };
 
