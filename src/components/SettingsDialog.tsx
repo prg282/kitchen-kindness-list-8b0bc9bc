@@ -18,7 +18,6 @@ export function SettingsDialog() {
   };
 
   const handleCountryChange = async (code: CountryCode) => {
-    if (!isPremium) return;
     await setCountry(code);
   };
 
