@@ -118,7 +118,7 @@ export function GroceryList() {
             <div className="mb-3 md:mb-4">
               <div className="flex items-center justify-between text-xs md:text-sm mb-1.5 md:mb-2">
                 <span className="text-muted-foreground">
-                  {checkedItems} of {totalItems} items
+                  {t('app.itemsProgress', { checked: String(checkedItems), total: String(totalItems) })}
                 </span>
                 <span className="font-medium text-primary">
                   {Math.round(progress)}%
