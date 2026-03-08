@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { GroceryItem, CategoryType, getCategoryInfo } from '@/lib/groceryCategories';
+import { useLanguage } from '@/hooks/useLanguage';
 
 type GroceryItemWithCreatedBy = GroceryItem & { created_by?: string };
 import { GroceryItemComponent } from './GroceryItem';
