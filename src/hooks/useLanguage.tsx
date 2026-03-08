@@ -10,7 +10,24 @@ interface LanguageContextType {
   isPremium: boolean;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const defaultT = (key: TranslationKey, params?: Record<string, string>): string => {
+  let text = translations.en[key] || key;
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      text = text.replace(`{${k}}`, v);
+    });
+  }
+  return text;
+};
+
+const defaultValue: LanguageContextType = {
+  language: 'en',
+  setLanguage: async () => {},
+  t: defaultT,
+  isPremium: false,
+};
+
+const LanguageContext = createContext<LanguageContextType>(defaultValue);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { profile, user } = useAuth();
