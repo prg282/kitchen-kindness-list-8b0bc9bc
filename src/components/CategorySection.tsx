@@ -32,7 +32,7 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit }:
       >
         <div className="flex items-center gap-2 md:gap-3">
           <span className="text-xl md:text-2xl">{categoryInfo.icon}</span>
-          <h3 className="font-semibold text-base md:text-lg text-foreground">{categoryInfo.name}</h3>
+          <h3 className="font-semibold text-base md:text-lg text-foreground">{translatedName}</h3>
           <div className="flex items-center gap-1.5 md:gap-2 ml-1 md:ml-2">
             {uncheckedCount > 0 && (
               <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-primary/10 text-primary">
