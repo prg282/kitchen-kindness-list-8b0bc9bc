@@ -80,7 +80,7 @@ export function GroceryList() {
                   className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
                 >
                   <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <span className="hidden sm:inline">Clear checked</span>
+                  <span className="hidden sm:inline">{t('app.clearChecked')}</span>
                 </button>
               )}
               <Button
