@@ -104,22 +104,6 @@ export function SettingsDialog() {
                 ))}
               </div>
 
-              {/* Selected country stores */}
-              {selectedCountry.stores.length > 0 && (
-                <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-                  <div className="flex items-center gap-1.5 mb-2 text-xs font-medium text-muted-foreground">
-                    <Store className="w-3 h-3" />
-                    Popular stores in {selectedCountry.name}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedCountry.stores.map((store) => (
-                      <span key={store} className="text-xs px-2 py-1 rounded-full bg-background border border-border/50 text-foreground">
-                        {store}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Language Section */}
