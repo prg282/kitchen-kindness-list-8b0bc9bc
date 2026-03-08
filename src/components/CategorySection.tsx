@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { GroceryItem, CategoryType, getCategoryInfo } from '@/lib/groceryCategories';
+import { useLanguage } from '@/hooks/useLanguage';
 
 type GroceryItemWithCreatedBy = GroceryItem & { created_by?: string };
 import { GroceryItemComponent } from './GroceryItem';
@@ -17,7 +18,9 @@ interface CategorySectionProps {
 export function CategorySection({ category, items, onToggle, onDelete, onEdit }: CategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const categoryInfo = getCategoryInfo(category);
+  const { t } = useLanguage();
   
+  const translatedName = t(`category.${category}` as any);
   const uncheckedCount = items.filter(i => !i.checked).length;
   const checkedCount = items.filter(i => i.checked).length;
 
@@ -29,7 +32,7 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit }:
       >
         <div className="flex items-center gap-2 md:gap-3">
           <span className="text-xl md:text-2xl">{categoryInfo.icon}</span>
-          <h3 className="font-semibold text-base md:text-lg text-foreground">{categoryInfo.name}</h3>
+          <h3 className="font-semibold text-base md:text-lg text-foreground">{translatedName}</h3>
           <div className="flex items-center gap-1.5 md:gap-2 ml-1 md:ml-2">
             {uncheckedCount > 0 && (
               <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-primary/10 text-primary">
@@ -37,8 +40,8 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit }:
               </span>
             )}
             {checkedCount > 0 && (
-              <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-muted text-muted-foreground">
-                {checkedCount} done
+               <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-muted text-muted-foreground">
+                {checkedCount} {t('category.done')}
               </span>
             )}
           </div>

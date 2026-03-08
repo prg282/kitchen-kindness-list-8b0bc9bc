@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, History, X } from 'lucide-react';
 import { categorizeItem, getCategoryInfo, CategoryType, KnownItem } from '@/lib/groceryCategories';
+import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 
 interface GroceryInputProps {
@@ -11,6 +12,7 @@ interface GroceryInputProps {
 }
 
 export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, onDeleteKnownItem }: GroceryInputProps) {
+  const { t } = useLanguage();
   const [value, setValue] = useState('');
   const [quantity, setQuantity] = useState('');
   const [previewCategory, setPreviewCategory] = useState<CategoryType | null>(null);
@@ -97,13 +99,13 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
   return (
     <form onSubmit={handleSubmit} className="relative">
       <div className="relative flex items-center gap-2 md:gap-3 bg-card rounded-lg shadow-medium p-1.5 md:p-2 border border-border/50 transition-all duration-200 focus-within:shadow-elevated focus-within:border-primary/30">
-        <input
-          type="text"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          placeholder="Qty"
-          className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
-        />
+          <input
+            type="text"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder={t('input.qty')}
+            className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
+          />
         <input
           ref={inputRef}
           type="text"
@@ -112,7 +114,7 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder="Add an item..."
+          placeholder={t('input.placeholder')}
           className="flex-1 bg-transparent px-2 md:px-4 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-base md:text-lg"
         />
         {categoryInfo && (
@@ -138,7 +140,7 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
           {!value.trim() && (
             <div className="px-3 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-medium text-muted-foreground bg-muted/50 flex items-center gap-1.5 md:gap-2">
               <History className="w-2.5 h-2.5 md:w-3 md:h-3" />
-              Recent items
+              {t('input.recentItems')}
             </div>
           )}
           {suggestions.map((item, index) => {

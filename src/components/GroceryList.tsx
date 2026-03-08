@@ -5,7 +5,9 @@ import { CategorySection } from './CategorySection';
 import { CategoryType, categories } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
+import { SettingsDialog } from './SettingsDialog';
 
 export function GroceryList() {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ export function GroceryList() {
   } = useGroceryList();
   
   const { profile, signOut } = useAuth();
+  const { t } = useLanguage();
 
   // Group items by category
   const groupedItems = items.reduce((acc, item) => {
@@ -46,7 +49,7 @@ export function GroceryList() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 md:w-10 md:h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-sm md:text-base text-muted-foreground">Loading your grocery list...</p>
+          <p className="text-sm md:text-base text-muted-foreground">{t('loading.groceryList')}</p>
         </div>
       </div>
     );
@@ -63,10 +66,10 @@ export function GroceryList() {
                 <ShoppingBasket className="w-5 h-5 md:w-7 md:h-7 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-serif text-foreground">Grocery List</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-serif text-foreground">{t('app.title')}</h1>
                 <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-1 md:gap-1.5">
                   <Sparkles className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                  Smart auto-categorisation • Synced with household
+                  {t('app.subtitle')}
                 </p>
               </div>
             </div>
@@ -77,14 +80,15 @@ export function GroceryList() {
                   className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
                 >
                   <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <span className="hidden sm:inline">Clear checked</span>
+                  <span className="hidden sm:inline">{t('app.clearChecked')}</span>
                 </button>
               )}
+              <SettingsDialog />
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/household')}
-                title="Household settings"
+                title={t('app.householdSettings')}
                 className="text-muted-foreground hover:text-foreground h-8 w-8 md:h-10 md:w-10"
               >
                 <Home className="w-4 h-4 md:w-5 md:h-5" />
@@ -93,7 +97,7 @@ export function GroceryList() {
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
-                title="Sign out"
+                title={t('app.signOut')}
                 className="text-muted-foreground hover:text-foreground h-8 w-8 md:h-10 md:w-10"
               >
                 <LogOut className="w-4 h-4 md:w-5 md:h-5" />
@@ -105,7 +109,7 @@ export function GroceryList() {
           {profile && (
             <div className="flex items-center gap-1.5 md:gap-2 mb-3 md:mb-4 text-xs md:text-sm text-muted-foreground">
               <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              <span>Signed in as {profile.display_name || profile.email}</span>
+              <span>{t('app.signedInAs')} {profile.display_name || profile.email}</span>
             </div>
           )}
 
@@ -114,7 +118,7 @@ export function GroceryList() {
             <div className="mb-3 md:mb-4">
               <div className="flex items-center justify-between text-xs md:text-sm mb-1.5 md:mb-2">
                 <span className="text-muted-foreground">
-                  {checkedItems} of {totalItems} items
+                  {t('app.itemsProgress', { checked: String(checkedItems), total: String(totalItems) })}
                 </span>
                 <span className="font-medium text-primary">
                   {Math.round(progress)}%
@@ -146,9 +150,9 @@ export function GroceryList() {
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted flex items-center justify-center mb-4 md:mb-6">
               <ShoppingBasket className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground" />
             </div>
-            <h2 className="text-lg md:text-xl font-serif text-foreground mb-2">Your list is empty</h2>
+            <h2 className="text-lg md:text-xl font-serif text-foreground mb-2">{t('empty.title')}</h2>
             <p className="text-sm md:text-base text-muted-foreground max-w-sm">
-              Start adding items above. They'll be automatically organised into categories and synced with your household!
+              {t('empty.description')}
             </p>
           </div>
         ) : (
