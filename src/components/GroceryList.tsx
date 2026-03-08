@@ -25,6 +25,7 @@ export function GroceryList() {
   } = useGroceryList();
   
   const { profile, signOut } = useAuth();
+  const { t } = useLanguage();
 
   // Group items by category
   const groupedItems = items.reduce((acc, item) => {
