@@ -348,7 +348,7 @@ const st: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Karolo ya Premium',
   'settings.premiumUpgrade': 'Ntlafatsa ho Premium ho bula ditlhophiso tsa puo le tse ding!',
-  'settings.upgradeButton': 'Ntlafatsa ho Premium — £1.99/kgwedi',
+  'settings.upgradeButton': 'Ntlafatsa ho Premium — R49.99/kgwedi',
   'loading.groceryList': 'E kenya lenane la hao la dijo...',
 };
 
