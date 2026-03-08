@@ -501,7 +501,7 @@ const ss: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Sici se-Premium',
   'settings.premiumUpgrade': 'Nyusela ku-Premium kuvula tisetingi telulwimi nalokunye!',
-  'settings.upgradeButton': 'Nyusela ku-Premium — £1.99/inyanga',
+  'settings.upgradeButton': 'Nyusela ku-Premium — R49.99/inyanga',
   'loading.groceryList': 'Ilayisha luhla lwakho lwekudla...',
 };
 
