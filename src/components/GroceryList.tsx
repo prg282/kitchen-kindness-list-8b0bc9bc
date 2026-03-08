@@ -5,7 +5,9 @@ import { CategorySection } from './CategorySection';
 import { CategoryType, categories } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
+import { SettingsDialog } from './SettingsDialog';
 
 export function GroceryList() {
   const navigate = useNavigate();
