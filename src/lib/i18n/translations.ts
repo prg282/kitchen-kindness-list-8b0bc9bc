@@ -91,7 +91,7 @@ const en = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Premium feature',
   'settings.premiumUpgrade': 'Upgrade to Premium to unlock language settings and more!',
-  'settings.upgradeButton': 'Upgrade to Premium — £1.99/mo',
+  'settings.upgradeButton': 'Upgrade to Premium — R49.99/mo',
 
   // Loading
   'loading.groceryList': 'Loading your grocery list...',
