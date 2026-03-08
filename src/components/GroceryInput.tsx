@@ -12,6 +12,7 @@ interface GroceryInputProps {
 }
 
 export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, onDeleteKnownItem }: GroceryInputProps) {
+  const { t } = useLanguage();
   const [value, setValue] = useState('');
   const [quantity, setQuantity] = useState('');
   const [previewCategory, setPreviewCategory] = useState<CategoryType | null>(null);
