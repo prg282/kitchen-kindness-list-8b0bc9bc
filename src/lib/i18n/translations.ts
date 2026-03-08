@@ -399,7 +399,7 @@ const tn: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Karolo ya Premium',
   'settings.premiumUpgrade': 'Tokafatsa go Premium go bula dithulaganyo tsa puo le tse dingwe!',
-  'settings.upgradeButton': 'Tokafatsa go Premium — £1.99/kgwedi',
+  'settings.upgradeButton': 'Tokafatsa go Premium — R49.99/kgwedi',
   'loading.groceryList': 'E laisa lenaane la gago la dijo...',
 };
 
