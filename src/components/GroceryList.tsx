@@ -109,7 +109,7 @@ export function GroceryList() {
           {profile && (
             <div className="flex items-center gap-1.5 md:gap-2 mb-3 md:mb-4 text-xs md:text-sm text-muted-foreground">
               <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              <span>Signed in as {profile.display_name || profile.email}</span>
+              <span>{t('app.signedInAs')} {profile.display_name || profile.email}</span>
             </div>
           )}
 
