@@ -450,7 +450,7 @@ const ts: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Xiphemu xa Premium',
   'settings.premiumUpgrade': 'Tlakusa ku ya eka Premium ku pfula switirhisiwa swa ririmi na swin\'wana!',
-  'settings.upgradeButton': 'Tlakusa ku ya eka Premium — £1.99/n\'hweti',
+  'settings.upgradeButton': 'Tlakusa ku ya eka Premium — R49.99/n\'hweti',
   'loading.groceryList': 'Yi layixa nxaxamelo wa wena wa swakudya...',
 };
 
