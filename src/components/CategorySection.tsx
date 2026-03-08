@@ -40,8 +40,8 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit }:
               </span>
             )}
             {checkedCount > 0 && (
-              <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-muted text-muted-foreground">
-                {checkedCount} done
+               <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-muted text-muted-foreground">
+                {checkedCount} {t('category.done')}
               </span>
             )}
           </div>
