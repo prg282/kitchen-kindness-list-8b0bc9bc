@@ -189,6 +189,8 @@ export type Database = {
           email: string | null
           household_id: string | null
           id: string
+          is_premium: boolean
+          language: string
         }
         Insert: {
           created_at?: string
@@ -196,6 +198,8 @@ export type Database = {
           email?: string | null
           household_id?: string | null
           id: string
+          is_premium?: boolean
+          language?: string
         }
         Update: {
           created_at?: string
@@ -203,6 +207,8 @@ export type Database = {
           email?: string | null
           household_id?: string | null
           id?: string
+          is_premium?: boolean
+          language?: string
         }
         Relationships: [
           {
