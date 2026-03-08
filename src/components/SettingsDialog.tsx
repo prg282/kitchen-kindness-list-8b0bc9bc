@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Settings, Globe, Crown, Lock, MapPin, Store } from 'lucide-react';
+import { Settings, Globe, Crown, Lock, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
