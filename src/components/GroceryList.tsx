@@ -83,11 +83,12 @@ export function GroceryList() {
                   <span className="hidden sm:inline">{t('app.clearChecked')}</span>
                 </button>
               )}
+              <SettingsDialog />
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/household')}
-                title="Household settings"
+                title={t('app.householdSettings')}
                 className="text-muted-foreground hover:text-foreground h-8 w-8 md:h-10 md:w-10"
               >
                 <Home className="w-4 h-4 md:w-5 md:h-5" />
