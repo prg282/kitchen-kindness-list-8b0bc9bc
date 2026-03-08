@@ -66,10 +66,10 @@ export function GroceryList() {
                 <ShoppingBasket className="w-5 h-5 md:w-7 md:h-7 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl lg:text-3xl font-serif text-foreground">Grocery List</h1>
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-serif text-foreground">{t('app.title')}</h1>
                 <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-1 md:gap-1.5">
                   <Sparkles className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                  Smart auto-categorisation • Synced with household
+                  {t('app.subtitle')}
                 </p>
               </div>
             </div>
