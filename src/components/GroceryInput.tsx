@@ -99,13 +99,13 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
   return (
     <form onSubmit={handleSubmit} className="relative">
       <div className="relative flex items-center gap-2 md:gap-3 bg-card rounded-lg shadow-medium p-1.5 md:p-2 border border-border/50 transition-all duration-200 focus-within:shadow-elevated focus-within:border-primary/30">
-        <input
-          type="text"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          placeholder="Qty"
-          className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
-        />
+          <input
+            type="text"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            placeholder={t('input.qty')}
+            className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
+          />
         <input
           ref={inputRef}
           type="text"
