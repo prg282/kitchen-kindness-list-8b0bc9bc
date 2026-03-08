@@ -603,7 +603,7 @@ const nr: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Isici se-Premium',
   'settings.premiumUpgrade': 'Nyusela ku-Premium bona uvule iinsethingi zelimi nokunye!',
-  'settings.upgradeButton': 'Nyusela ku-Premium — £1.99/inyanga',
+  'settings.upgradeButton': 'Nyusela ku-Premium — R49.99/inyanga',
   'loading.groceryList': 'Ilayisha irhelo lakho lezinto zokudla...',
 };
 
