@@ -97,7 +97,7 @@ export function GroceryList() {
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
-                title="Sign out"
+                title={t('app.signOut')}
                 className="text-muted-foreground hover:text-foreground h-8 w-8 md:h-10 md:w-10"
               >
                 <LogOut className="w-4 h-4 md:w-5 md:h-5" />
