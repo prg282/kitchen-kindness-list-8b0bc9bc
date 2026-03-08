@@ -18,7 +18,9 @@ interface CategorySectionProps {
 export function CategorySection({ category, items, onToggle, onDelete, onEdit }: CategorySectionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const categoryInfo = getCategoryInfo(category);
+  const { t } = useLanguage();
   
+  const translatedName = t(`category.${category}` as any);
   const uncheckedCount = items.filter(i => !i.checked).length;
   const checkedCount = items.filter(i => i.checked).length;
 
