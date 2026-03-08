@@ -91,7 +91,7 @@ const en = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Premium feature',
   'settings.premiumUpgrade': 'Upgrade to Premium to unlock language settings and more!',
-  'settings.upgradeButton': 'Upgrade to Premium — £1.99/mo',
+  'settings.upgradeButton': 'Upgrade to Premium — R49.99/mo',
 
   // Loading
   'loading.groceryList': 'Loading your grocery list...',
@@ -144,7 +144,7 @@ const af: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Premium kenmerk',
   'settings.premiumUpgrade': 'Gradeer op na Premium om taalinstellings en meer te ontsluit!',
-  'settings.upgradeButton': 'Gradeer op na Premium — £1.99/m',
+  'settings.upgradeButton': 'Gradeer op na Premium — R49.99/m',
   'loading.groceryList': 'Laai jou kruideniersware lys...',
 };
 
@@ -195,7 +195,7 @@ const zu: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Isici se-Premium',
   'settings.premiumUpgrade': 'Thuthukela ku-Premium ukuze uvule izilungiselelo zolimi nokunye!',
-  'settings.upgradeButton': 'Thuthukela ku-Premium — £1.99/inyanga',
+  'settings.upgradeButton': 'Thuthukela ku-Premium — R49.99/inyanga',
   'loading.groceryList': 'Ilayisha uhlu lwakho lwezinto zokudla...',
 };
 
@@ -246,7 +246,7 @@ const xh: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Isici se-Premium',
   'settings.premiumUpgrade': 'Nyusela ku-Premium ukuze uvule iisetingi zolwimi nokunye!',
-  'settings.upgradeButton': 'Nyusela ku-Premium — £1.99/inyanga',
+  'settings.upgradeButton': 'Nyusela ku-Premium — R49.99/inyanga',
   'loading.groceryList': 'Ilowuda uluhlu lwakho lwezinto zokutya...',
 };
 
@@ -297,7 +297,7 @@ const nso: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Karolo ya Premium',
   'settings.premiumUpgrade': 'Nyosetša go Premium go bula dipeakanyo tša polelo le tše dingwe!',
-  'settings.upgradeButton': 'Nyosetša go Premium — £1.99/kgwedi',
+  'settings.upgradeButton': 'Nyosetša go Premium — R49.99/kgwedi',
   'loading.groceryList': 'E laetša lenaneo la gago la dijo...',
 };
 
@@ -348,7 +348,7 @@ const st: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Karolo ya Premium',
   'settings.premiumUpgrade': 'Ntlafatsa ho Premium ho bula ditlhophiso tsa puo le tse ding!',
-  'settings.upgradeButton': 'Ntlafatsa ho Premium — £1.99/kgwedi',
+  'settings.upgradeButton': 'Ntlafatsa ho Premium — R49.99/kgwedi',
   'loading.groceryList': 'E kenya lenane la hao la dijo...',
 };
 
@@ -399,7 +399,7 @@ const tn: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Karolo ya Premium',
   'settings.premiumUpgrade': 'Tokafatsa go Premium go bula dithulaganyo tsa puo le tse dingwe!',
-  'settings.upgradeButton': 'Tokafatsa go Premium — £1.99/kgwedi',
+  'settings.upgradeButton': 'Tokafatsa go Premium — R49.99/kgwedi',
   'loading.groceryList': 'E laisa lenaane la gago la dijo...',
 };
 
@@ -450,7 +450,7 @@ const ts: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Xiphemu xa Premium',
   'settings.premiumUpgrade': 'Tlakusa ku ya eka Premium ku pfula switirhisiwa swa ririmi na swin\'wana!',
-  'settings.upgradeButton': 'Tlakusa ku ya eka Premium — £1.99/n\'hweti',
+  'settings.upgradeButton': 'Tlakusa ku ya eka Premium — R49.99/n\'hweti',
   'loading.groceryList': 'Yi layixa nxaxamelo wa wena wa swakudya...',
 };
 
@@ -501,7 +501,7 @@ const ss: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Sici se-Premium',
   'settings.premiumUpgrade': 'Nyusela ku-Premium kuvula tisetingi telulwimi nalokunye!',
-  'settings.upgradeButton': 'Nyusela ku-Premium — £1.99/inyanga',
+  'settings.upgradeButton': 'Nyusela ku-Premium — R49.99/inyanga',
   'loading.groceryList': 'Ilayisha luhla lwakho lwekudla...',
 };
 
@@ -552,7 +552,7 @@ const ve: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Tshiṅwe tsha Premium',
   'settings.premiumUpgrade': 'Nyuselani kha Premium u vula mbekanyamushumo ya luambo na zwiṅwe!',
-  'settings.upgradeButton': 'Nyuselani kha Premium — £1.99/ṅwedzi',
+  'settings.upgradeButton': 'Nyuselani kha Premium — R49.99/ṅwedzi',
   'loading.groceryList': 'I khou louda mutevhe waṋu wa zwiḽiwa...',
 };
 
@@ -603,7 +603,7 @@ const nr: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Isici se-Premium',
   'settings.premiumUpgrade': 'Nyusela ku-Premium bona uvule iinsethingi zelimi nokunye!',
-  'settings.upgradeButton': 'Nyusela ku-Premium — £1.99/inyanga',
+  'settings.upgradeButton': 'Nyusela ku-Premium — R49.99/inyanga',
   'loading.groceryList': 'Ilayisha irhelo lakho lezinto zokudla...',
 };
 
