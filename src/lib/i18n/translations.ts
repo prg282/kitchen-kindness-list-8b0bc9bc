@@ -297,7 +297,7 @@ const nso: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Karolo ya Premium',
   'settings.premiumUpgrade': 'Nyosetša go Premium go bula dipeakanyo tša polelo le tše dingwe!',
-  'settings.upgradeButton': 'Nyosetša go Premium — £1.99/kgwedi',
+  'settings.upgradeButton': 'Nyosetša go Premium — R49.99/kgwedi',
   'loading.groceryList': 'E laetša lenaneo la gago la dijo...',
 };
 
