@@ -150,9 +150,9 @@ export function GroceryList() {
             <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted flex items-center justify-center mb-4 md:mb-6">
               <ShoppingBasket className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground" />
             </div>
-            <h2 className="text-lg md:text-xl font-serif text-foreground mb-2">Your list is empty</h2>
+            <h2 className="text-lg md:text-xl font-serif text-foreground mb-2">{t('empty.title')}</h2>
             <p className="text-sm md:text-base text-muted-foreground max-w-sm">
-              Start adding items above. They'll be automatically organised into categories and synced with your household!
+              {t('empty.description')}
             </p>
           </div>
         ) : (
