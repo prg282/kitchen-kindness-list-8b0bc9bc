@@ -140,7 +140,7 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
           {!value.trim() && (
             <div className="px-3 md:px-4 py-1.5 md:py-2 text-[10px] md:text-xs font-medium text-muted-foreground bg-muted/50 flex items-center gap-1.5 md:gap-2">
               <History className="w-2.5 h-2.5 md:w-3 md:h-3" />
-              Recent items
+              {t('input.recentItems')}
             </div>
           )}
           {suggestions.map((item, index) => {
