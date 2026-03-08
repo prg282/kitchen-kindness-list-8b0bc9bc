@@ -18,6 +18,7 @@ export function SettingsDialog() {
   };
 
   const handleCountryChange = async (code: CountryCode) => {
+    if (!isPremium) return;
     await setCountry(code);
   };
 
@@ -62,9 +63,17 @@ export function SettingsDialog() {
 
             {/* Country Section */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-4 h-4 text-primary" />
-                <h3 className="font-medium text-foreground">Country</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <h3 className="font-medium text-foreground">Country</h3>
+                </div>
+                {!isPremium && (
+                  <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-full">
+                    <Crown className="w-3 h-3" />
+                    {t('settings.premiumRequired')}
+                  </span>
+                )}
               </div>
               <p className="text-sm text-muted-foreground mb-3">Select your country for local stores and pricing</p>
 
@@ -73,13 +82,19 @@ export function SettingsDialog() {
                   <button
                     key={c.code}
                     onClick={() => handleCountryChange(c.code)}
+                    disabled={!isPremium}
                     className={cn(
                       "flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all duration-200 text-sm",
                       country === c.code
                         ? "border-primary bg-primary/10 text-primary font-medium"
-                        : "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
+                        : isPremium
+                          ? "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
+                          : "border-border/50 text-muted-foreground opacity-60 cursor-not-allowed"
                     )}
                   >
+                    {!isPremium && country !== c.code && (
+                      <Lock className="w-3 h-3 flex-shrink-0" />
+                    )}
                     <span className="text-lg">{c.flag}</span>
                     <div className="min-w-0">
                       <div className="font-medium truncate text-xs">{c.name}</div>
