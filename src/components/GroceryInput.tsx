@@ -114,7 +114,7 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder="Add an item..."
+          placeholder={t('input.placeholder')}
           className="flex-1 bg-transparent px-2 md:px-4 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-base md:text-lg"
         />
         {categoryInfo && (
