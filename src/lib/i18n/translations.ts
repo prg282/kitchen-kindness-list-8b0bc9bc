@@ -552,7 +552,7 @@ const ve: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Tshiṅwe tsha Premium',
   'settings.premiumUpgrade': 'Nyuselani kha Premium u vula mbekanyamushumo ya luambo na zwiṅwe!',
-  'settings.upgradeButton': 'Nyuselani kha Premium — £1.99/ṅwedzi',
+  'settings.upgradeButton': 'Nyuselani kha Premium — R49.99/ṅwedzi',
   'loading.groceryList': 'I khou louda mutevhe waṋu wa zwiḽiwa...',
 };
 
