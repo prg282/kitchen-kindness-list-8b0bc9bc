@@ -195,7 +195,7 @@ const zu: Record<TranslationKey, string> = {
   'settings.premium': 'Premium',
   'settings.premiumRequired': 'Isici se-Premium',
   'settings.premiumUpgrade': 'Thuthukela ku-Premium ukuze uvule izilungiselelo zolimi nokunye!',
-  'settings.upgradeButton': 'Thuthukela ku-Premium — £1.99/inyanga',
+  'settings.upgradeButton': 'Thuthukela ku-Premium — R49.99/inyanga',
   'loading.groceryList': 'Ilayisha uhlu lwakho lwezinto zokudla...',
 };
 
