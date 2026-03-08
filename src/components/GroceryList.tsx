@@ -49,7 +49,7 @@ export function GroceryList() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 md:w-10 md:h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-sm md:text-base text-muted-foreground">Loading your grocery list...</p>
+          <p className="text-sm md:text-base text-muted-foreground">{t('loading.groceryList')}</p>
         </div>
       </div>
     );
