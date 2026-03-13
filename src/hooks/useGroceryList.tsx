@@ -125,6 +125,7 @@ export function useGroceryList() {
                 checked: newItem.checked,
                 created_by: newItem.created_by || undefined,
                 quantity: newItem.quantity || undefined,
+                sort_order: newItem.sort_order ?? 0,
               }];
             });
           } else if (payload.eventType === 'UPDATE') {
