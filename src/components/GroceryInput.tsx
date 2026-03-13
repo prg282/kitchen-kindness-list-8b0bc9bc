@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, History, X } from 'lucide-react';
+import { Plus, History, X, Mic, MicOff } from 'lucide-react';
 import { categorizeItem, getCategoryInfo, CategoryType, KnownItem } from '@/lib/groceryCategories';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { cn } from '@/lib/utils';
 
 interface GroceryInputProps {
@@ -21,6 +22,8 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  const { isListening, isSupported, transcript, toggleListening } = useVoiceInput({ onAddItem });
 
   useEffect(() => {
     if (value.trim()) {
@@ -97,40 +100,69 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
   const categoryInfo = previewCategory ? getCategoryInfo(previewCategory) : null;
 
   return (
-    <form onSubmit={handleSubmit} className="relative">
-      <div className="relative flex items-center gap-2 md:gap-3 bg-card rounded-lg shadow-medium p-1.5 md:p-2 border border-border/50 transition-all duration-200 focus-within:shadow-elevated focus-within:border-primary/30">
+    <div className="relative">
+      <form onSubmit={handleSubmit}>
+        <div className="relative flex items-center gap-2 md:gap-3 bg-card rounded-lg shadow-medium p-1.5 md:p-2 border border-border/50 transition-all duration-200 focus-within:shadow-elevated focus-within:border-primary/30">
+            <input
+              type="text"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder={t('input.qty')}
+              className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
+            />
           <input
+            ref={inputRef}
             type="text"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            placeholder={t('input.qty')}
-            className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            placeholder={isListening ? (transcript || 'Listening...') : t('input.placeholder')}
+            className="flex-1 bg-transparent px-2 md:px-4 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-base md:text-lg"
           />
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          placeholder={t('input.placeholder')}
-          className="flex-1 bg-transparent px-2 md:px-4 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-base md:text-lg"
-        />
-        {categoryInfo && (
-          <div className="hidden sm:flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-accent/50 text-xs md:text-sm text-accent-foreground animate-fade-in-up">
-            <span>{categoryInfo.icon}</span>
-            <span className="font-medium">{categoryInfo.name}</span>
-          </div>
-        )}
-        <button
-          type="submit"
-          disabled={!value.trim()}
-          className="flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-lg bg-primary text-primary-foreground transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-soft hover:shadow-medium"
-        >
-          <Plus className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
-      </div>
+          {categoryInfo && (
+            <div className="hidden sm:flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-accent/50 text-xs md:text-sm text-accent-foreground animate-fade-in-up">
+              <span>{categoryInfo.icon}</span>
+              <span className="font-medium">{categoryInfo.name}</span>
+            </div>
+          )}
+          {isSupported && (
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={cn(
+                "flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-lg transition-all duration-200",
+                isListening
+                  ? "bg-destructive text-destructive-foreground animate-pulse"
+                  : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+              )}
+              title={isListening ? 'Stop listening' : 'Voice input'}
+            >
+              {isListening ? (
+                <MicOff className="w-5 h-5 md:w-6 md:h-6" />
+              ) : (
+                <Mic className="w-5 h-5 md:w-6 md:h-6" />
+              )}
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={!value.trim()}
+            className="flex items-center justify-center w-9 h-9 md:w-12 md:h-12 rounded-lg bg-primary text-primary-foreground transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed shadow-soft hover:shadow-medium"
+          >
+            <Plus className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+        </div>
+      </form>
+
+      {/* Live transcript indicator */}
+      {isListening && transcript && (
+        <div className="mt-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-foreground animate-fade-in">
+          <span className="text-destructive font-medium">🎤 </span>
+          {transcript}
+        </div>
+      )}
 
       {showSuggestions && suggestions.length > 0 && (
         <div 
@@ -184,6 +216,6 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
           })}
         </div>
       )}
-    </form>
+    </div>
   );
 }
