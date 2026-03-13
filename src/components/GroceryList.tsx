@@ -22,6 +22,7 @@ export function GroceryList() {
     searchKnownItems,
     getFrequentItems,
     deleteKnownItem,
+    reorderItems,
   } = useGroceryList();
   
   const { profile, signOut } = useAuth();
