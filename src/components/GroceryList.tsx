@@ -22,6 +22,7 @@ export function GroceryList() {
     searchKnownItems,
     getFrequentItems,
     deleteKnownItem,
+    reorderItems,
   } = useGroceryList();
   
   const { profile, signOut } = useAuth();
@@ -165,6 +166,7 @@ export function GroceryList() {
                 onToggle={toggleItem}
                 onDelete={deleteItem}
                 onEdit={editItem}
+                onReorder={reorderItems}
               />
             ))}
           </div>

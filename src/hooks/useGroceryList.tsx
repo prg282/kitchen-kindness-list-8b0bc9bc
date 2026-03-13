@@ -29,14 +29,17 @@ export function useGroceryList() {
     }
 
   setItems(
-      data.map((item) => ({
-        id: item.id,
-        name: item.name,
-        category: item.category as CategoryType,
-        checked: item.checked,
-        created_by: item.created_by || undefined,
-        quantity: item.quantity || undefined,
-      }))
+      data
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category as CategoryType,
+          checked: item.checked,
+          created_by: item.created_by || undefined,
+          quantity: item.quantity || undefined,
+          sort_order: (item as any).sort_order ?? 0,
+        }))
     );
   }, [householdId]);
 
@@ -122,6 +125,7 @@ export function useGroceryList() {
                 checked: newItem.checked,
                 created_by: newItem.created_by || undefined,
                 quantity: newItem.quantity || undefined,
+                sort_order: newItem.sort_order ?? 0,
               }];
             });
           } else if (payload.eventType === 'UPDATE') {
@@ -135,6 +139,7 @@ export function useGroceryList() {
                     checked: updatedItem.checked,
                     created_by: updatedItem.created_by || undefined,
                     quantity: updatedItem.quantity || undefined,
+                    sort_order: updatedItem.sort_order ?? 0,
                   }
                 : item
             ));
@@ -407,6 +412,37 @@ export function useGroceryList() {
     }
   };
 
+  // Reorder items within a category
+  const reorderItems = async (reorderedCategoryItems: GroceryItem[]) => {
+    // Update sort_order for each item
+    const updates = reorderedCategoryItems.map((item, index) => ({
+      ...item,
+      sort_order: index,
+    }));
+
+    // Optimistic update
+    setItems(prev => {
+      const otherItems = prev.filter(i => !updates.some(u => u.id === i.id));
+      return [...otherItems, ...updates];
+    });
+
+    // Persist to DB
+    const promises = updates.map((item, index) =>
+      supabase
+        .from('grocery_items')
+        .update({ sort_order: index } as any)
+        .eq('id', item.id)
+    );
+
+    const results = await Promise.all(promises);
+    const hasError = results.some(r => r.error);
+    if (hasError) {
+      console.error('Error reordering items');
+      // Refetch to restore correct order
+      await fetchItems();
+    }
+  };
+
   return {
     items,
     loading,
@@ -418,5 +454,6 @@ export function useGroceryList() {
     searchKnownItems,
     getFrequentItems,
     deleteKnownItem,
+    reorderItems,
   };
 }
