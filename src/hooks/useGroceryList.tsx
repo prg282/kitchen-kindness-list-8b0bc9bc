@@ -139,6 +139,7 @@ export function useGroceryList() {
                     checked: updatedItem.checked,
                     created_by: updatedItem.created_by || undefined,
                     quantity: updatedItem.quantity || undefined,
+                    sort_order: updatedItem.sort_order ?? 0,
                   }
                 : item
             ));
