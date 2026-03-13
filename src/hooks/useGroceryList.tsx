@@ -29,14 +29,17 @@ export function useGroceryList() {
     }
 
   setItems(
-      data.map((item) => ({
-        id: item.id,
-        name: item.name,
-        category: item.category as CategoryType,
-        checked: item.checked,
-        created_by: item.created_by || undefined,
-        quantity: item.quantity || undefined,
-      }))
+      data
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category as CategoryType,
+          checked: item.checked,
+          created_by: item.created_by || undefined,
+          quantity: item.quantity || undefined,
+          sort_order: (item as any).sort_order ?? 0,
+        }))
     );
   }, [householdId]);
 
