@@ -16,6 +16,7 @@ export interface GroceryItem {
   checked: boolean;
   created_by?: string;
   quantity?: string;
+  sort_order?: number;
 }
 
 export interface KnownItem {
