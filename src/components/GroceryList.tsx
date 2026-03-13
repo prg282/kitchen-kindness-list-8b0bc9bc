@@ -166,6 +166,7 @@ export function GroceryList() {
                 onToggle={toggleItem}
                 onDelete={deleteItem}
                 onEdit={editItem}
+                onReorder={reorderItems}
               />
             ))}
           </div>
