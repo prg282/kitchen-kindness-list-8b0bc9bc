@@ -50,7 +50,8 @@ export function useVoiceInput({ onAddItem }: UseVoiceInputProps) {
       return;
     }
 
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const win = window as any;
+    const SpeechRecognitionAPI = win.SpeechRecognition || win.webkitSpeechRecognition;
     const recognition = new SpeechRecognitionAPI();
     
     recognition.continuous = false;
