@@ -39,14 +39,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { inviteCode, pin, displayName } = await req.json();
+    const body = await req.json();
+    const inviteCode = typeof body.inviteCode === 'string' ? body.inviteCode.trim() : '';
+    const pin = typeof body.pin === 'string' ? body.pin.trim() : '';
+    const displayName = typeof body.displayName === 'string' ? body.displayName.trim().slice(0, 100) : '';
     
-    console.log('Join household request received:', { inviteCode, pin: '***', displayName, clientIp: clientIp.substring(0, 8) + '...' });
+    console.log('Join household request received:', { inviteCode: inviteCode.substring(0, 8) + '...', pin: '***', displayName: displayName ? '***' : '(none)', clientIp: clientIp.substring(0, 8) + '...' });
 
-    if (!inviteCode || !pin) {
-      console.error('Missing required fields');
+    // Validate invite code: must be a 32-character hex string
+    if (!inviteCode || !/^[a-f0-9]{32}$/.test(inviteCode)) {
+      console.error('Invalid invite code format');
       return new Response(
-        JSON.stringify({ error: 'Invite code and PIN are required' }),
+        JSON.stringify({ error: 'Invalid invitation link' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate PIN: must be a 6-character alphanumeric string
+    if (!pin || !/^[a-f0-9]{6}$/.test(pin)) {
+      console.error('Invalid PIN format');
+      return new Response(
+        JSON.stringify({ error: 'PIN must be a 6-character code' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate display name if provided
+    if (displayName && (displayName.length < 1 || displayName.length > 100)) {
+      return new Response(
+        JSON.stringify({ error: 'Display name must be between 1 and 100 characters' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
