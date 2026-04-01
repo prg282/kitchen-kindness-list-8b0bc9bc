@@ -106,7 +106,7 @@ export default function Auth() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Your name"
+                    placeholder={t('auth.namePlaceholder')}
                     className="pl-10"
                   />
                 </div>
