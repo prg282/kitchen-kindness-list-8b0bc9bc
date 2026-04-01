@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShoppingBasket, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +22,7 @@ export default function Auth() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (user && !loading) {
@@ -81,14 +83,14 @@ export default function Auth() {
             <ShoppingBasket className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl font-serif text-foreground mb-2">
-            Grocery List
+            {t('auth.title')}
           </h1>
           <p className="text-muted-foreground">
             {isLogin 
-              ? 'Welcome back! Sign in to continue.' 
+              ? t('auth.loginSubtitle')
               : isJoinFlow 
-                ? 'Create an account to join the household.'
-                : 'Create an account to start your family grocery list.'}
+                ? t('auth.joinSubtitle')
+                : t('auth.signupSubtitle')}
           </p>
         </div>
 
@@ -96,7 +98,7 @@ export default function Auth() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
+                <Label htmlFor="displayName">{t('auth.displayName')}</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
@@ -104,7 +106,7 @@ export default function Auth() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Your name"
+                    placeholder={t('auth.namePlaceholder')}
                     className="pl-10"
                   />
                 </div>
@@ -112,7 +114,7 @@ export default function Auth() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -120,7 +122,7 @@ export default function Auth() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                   required
                   className="pl-10"
                 />
@@ -128,7 +130,7 @@ export default function Auth() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -136,7 +138,7 @@ export default function Auth() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={isLogin ? '••••••••' : 'At least 6 characters'}
+                  placeholder={isLogin ? '••••••••' : t('auth.passwordPlaceholder')}
                   required
                   minLength={6}
                   className="pl-10"
@@ -148,10 +150,10 @@ export default function Auth() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {isLogin ? 'Signing in...' : 'Creating account...'}
+                  {isLogin ? t('auth.signingIn') : t('auth.creatingAccount')}
                 </>
               ) : (
-                isLogin ? 'Sign In' : 'Create Account'
+                isLogin ? t('auth.signIn') : t('auth.createAccount')
               )}
             </Button>
           </form>
@@ -161,7 +163,7 @@ export default function Auth() {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-card px-2 text-muted-foreground">{t('auth.orContinueWith')}</span>
             </div>
           </div>
 
@@ -184,7 +186,7 @@ export default function Auth() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
-            Sign in with Google
+            {t('auth.googleSignIn')}
           </Button>
 
           <div className="mt-6 text-center">
@@ -193,7 +195,7 @@ export default function Auth() {
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}
             </button>
           </div>
         </div>
