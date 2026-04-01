@@ -22,6 +22,7 @@ export default function Auth() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (user && !loading) {
