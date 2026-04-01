@@ -138,7 +138,7 @@ export default function Auth() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={isLogin ? '••••••••' : 'At least 6 characters'}
+                  placeholder={isLogin ? '••••••••' : t('auth.passwordPlaceholder')}
                   required
                   minLength={6}
                   className="pl-10"
