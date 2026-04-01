@@ -150,10 +150,10 @@ export default function Auth() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {isLogin ? 'Signing in...' : 'Creating account...'}
+                  {isLogin ? t('auth.signingIn') : t('auth.creatingAccount')}
                 </>
               ) : (
-                isLogin ? 'Sign In' : 'Create Account'
+                isLogin ? t('auth.signIn') : t('auth.createAccount')
               )}
             </Button>
           </form>
