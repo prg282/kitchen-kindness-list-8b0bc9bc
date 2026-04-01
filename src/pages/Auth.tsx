@@ -83,14 +83,14 @@ export default function Auth() {
             <ShoppingBasket className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl font-serif text-foreground mb-2">
-            Grocery List
+            {t('auth.title')}
           </h1>
           <p className="text-muted-foreground">
             {isLogin 
-              ? 'Welcome back! Sign in to continue.' 
+              ? t('auth.loginSubtitle')
               : isJoinFlow 
-                ? 'Create an account to join the household.'
-                : 'Create an account to start your family grocery list.'}
+                ? t('auth.joinSubtitle')
+                : t('auth.signupSubtitle')}
           </p>
         </div>
 
