@@ -185,6 +185,51 @@ export type Database = {
           },
         ]
       }
+      loyalty_cards: {
+        Row: {
+          barcode_format: string | null
+          barcode_value: string | null
+          brand_color: string | null
+          card_number: string | null
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          name: string
+          notes: string | null
+          photo_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          barcode_format?: string | null
+          barcode_value?: string | null
+          brand_color?: string | null
+          card_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          photo_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          barcode_format?: string | null
+          barcode_value?: string | null
+          brand_color?: string | null
+          card_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          photo_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           country: string

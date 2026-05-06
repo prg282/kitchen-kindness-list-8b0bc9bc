@@ -1,4 +1,4 @@
-import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Loader2, Home } from 'lucide-react';
+import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Loader2, Home, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GroceryInput } from './GroceryInput';
 import { CategorySection } from './CategorySection';
@@ -85,6 +85,15 @@ export function GroceryList() {
                 </button>
               )}
               <SettingsDialog />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/cards')}
+                title="Rewards Cards"
+                className="text-muted-foreground hover:text-foreground h-8 w-8 md:h-10 md:w-10"
+              >
+                <CreditCard className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"

@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Household from "./pages/Household";
 import JoinHousehold from "./pages/JoinHousehold";
+import LoyaltyCards from "./pages/LoyaltyCards";
 import NotFound from "./pages/NotFound";
 
 // Create a stable query client instance
@@ -27,6 +28,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/household" element={<Household />} />
               <Route path="/join/:inviteCode" element={<JoinHousehold />} />
+              <Route path="/cards" element={<LoyaltyCards />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
