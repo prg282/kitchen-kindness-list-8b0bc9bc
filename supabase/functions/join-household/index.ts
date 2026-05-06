@@ -147,13 +147,15 @@ Deno.serve(async (req) => {
 
     console.log('Creating user account...');
 
-    // Create user with admin client
+    // Create user with admin client; pass join_household_id so the
+    // handle_new_user trigger places this profile in the shared household.
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: generatedEmail,
       password: generatedPassword,
       email_confirm: true,
       user_metadata: {
         display_name: userName,
+        join_household_id: invitation.household_id,
       },
     });
 
