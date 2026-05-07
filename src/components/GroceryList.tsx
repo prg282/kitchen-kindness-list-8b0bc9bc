@@ -84,7 +84,7 @@ export function GroceryList() {
                   <span className="hidden sm:inline">{t('app.clearChecked')}</span>
                 </button>
               )}
-              <SettingsDialog />
+              {/* <SettingsDialog /> */}
               <Button
                 variant="ghost"
                 size="icon"
