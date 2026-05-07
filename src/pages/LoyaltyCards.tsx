@@ -367,7 +367,14 @@ const LoyaltyCards = () => {
           setBarcodeValue(value);
           setBarcodeFormat(format);
           setScanning(false);
-          toast.success(`Scanned (${format})`);
+          if (!cardNumber.trim()) setCardNumber(value);
+          const detected = detectBrandFromBarcode(value);
+          if (detected) {
+            applyBrand(detected, { keepName: true });
+            toast.success(`Detected ${detected.name}`);
+          } else {
+            toast.success(`Scanned (${format})`);
+          }
         }}
       />
     </div>
