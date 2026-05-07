@@ -176,19 +176,60 @@ export function GroceryList() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {sortedCategories.map((category) => (
-              <CategorySection
-                key={category.id}
-                category={category.id}
-                items={groupedItems[category.id] || []}
-                onToggle={toggleItem}
-                onDelete={deleteItem}
-                onEdit={editItem}
-                onReorder={reorderItems}
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragEnd={(event: DragEndEvent) => {
+              const { active, over } = event;
+              if (!over) return;
+              const activeId = String(active.id);
+              const overId = String(over.id);
+              const activeItem = items.find(i => i.id === activeId);
+              if (!activeItem) return;
+
+              // Determine destination category
+              let destCategory: CategoryType = activeItem.category;
+              const overData: any = over.data?.current;
+              if (overData?.category) {
+                destCategory = overData.category as CategoryType;
+              } else {
+                const overItem = items.find(i => i.id === overId);
+                if (overItem) destCategory = overItem.category;
+              }
+
+              if (destCategory !== activeItem.category) {
+                const destItems = (groupedItems[destCategory] || []);
+                const overItem = items.find(i => i.id === overId);
+                const targetIndex = overItem
+                  ? destItems.findIndex(i => i.id === overItem.id)
+                  : destItems.length;
+                moveItemToCategory(activeId, destCategory, targetIndex >= 0 ? targetIndex : destItems.length);
+              } else {
+                if (activeId === overId) return;
+                const list = groupedItems[activeItem.category] || [];
+                const oldIndex = list.findIndex(i => i.id === activeId);
+                const newIndex = list.findIndex(i => i.id === overId);
+                if (oldIndex === -1 || newIndex === -1) return;
+                const next = [...list];
+                const [m] = next.splice(oldIndex, 1);
+                next.splice(newIndex, 0, m);
+                reorderItems(next);
+              }
+            }}
+          >
+            <div className="space-y-4">
+              {sortedCategories.map((category) => (
+                <CategorySection
+                  key={category.id}
+                  category={category.id}
+                  items={groupedItems[category.id] || []}
+                  onToggle={toggleItem}
+                  onDelete={deleteItem}
+                  onEdit={editItem}
+                />
+              ))}
+            </div>
+          </DndContext>
         )}
       </main>
     </div>
