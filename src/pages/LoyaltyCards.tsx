@@ -14,6 +14,10 @@ import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image a
 import { toast } from 'sonner';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { BarcodeDisplay } from '@/components/BarcodeDisplay';
+import {
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, type LoyaltyBrand } from '@/lib/loyaltyCards';
 
 interface LoyaltyCard {
   id: string;
