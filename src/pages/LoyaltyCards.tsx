@@ -14,6 +14,10 @@ import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image a
 import { toast } from 'sonner';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { BarcodeDisplay } from '@/components/BarcodeDisplay';
+import {
+  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, type LoyaltyBrand } from '@/lib/loyaltyCards';
 
 interface LoyaltyCard {
   id: string;
@@ -48,6 +52,19 @@ const LoyaltyCards = () => {
   const [notes, setNotes] = useState('');
   const [brandColor, setBrandColor] = useState('#0ea5e9');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [brandId, setBrandId] = useState<string>('');
+
+  const applyBrand = (brand: LoyaltyBrand, opts?: { keepName?: boolean }) => {
+    setBrandId(brand.id);
+    setBrandColor(brand.color);
+    if (!opts?.keepName || !name.trim()) setName(brand.name);
+  };
+
+  const groupedBrands = SA_LOYALTY_BRANDS.reduce<Record<string, LoyaltyBrand[]>>((acc, b) => {
+    const key = b.category || 'Other';
+    (acc[key] ||= []).push(b);
+    return acc;
+  }, {});
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -80,6 +97,7 @@ const LoyaltyCards = () => {
     setNotes('');
     setBrandColor('#0ea5e9');
     setPhotoFile(null);
+    setBrandId('');
   };
 
   const handleSave = async () => {
@@ -182,6 +200,31 @@ const LoyaltyCards = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="card-brand">Rewards programme</Label>
+                  <Select
+                    value={brandId}
+                    onValueChange={(v) => {
+                      const b = SA_LOYALTY_BRANDS.find((x) => x.id === v);
+                      if (b) applyBrand(b);
+                    }}
+                  >
+                    <SelectTrigger id="card-brand">
+                      <SelectValue placeholder="Choose a South African rewards card" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {Object.entries(groupedBrands).map(([cat, brands]) => (
+                        <SelectGroup key={cat}>
+                          <SelectLabel>{cat}</SelectLabel>
+                          {brands.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Pick a programme to auto-fill the name and brand colour, or scan to detect.</p>
+                </div>
                 <div className="space-y-1">
                   <Label htmlFor="card-name">Card name *</Label>
                   <Input id="card-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pick n Pay Smart Shopper" />
@@ -324,7 +367,14 @@ const LoyaltyCards = () => {
           setBarcodeValue(value);
           setBarcodeFormat(format);
           setScanning(false);
-          toast.success(`Scanned (${format})`);
+          if (!cardNumber.trim()) setCardNumber(value);
+          const detected = detectBrandFromBarcode(value);
+          if (detected) {
+            applyBrand(detected, { keepName: true });
+            toast.success(`Detected ${detected.name}`);
+          } else {
+            toast.success(`Scanned (${format})`);
+          }
         }}
       />
     </div>
