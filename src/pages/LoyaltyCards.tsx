@@ -201,6 +201,31 @@ const LoyaltyCards = () => {
               </DialogHeader>
               <div className="space-y-3">
                 <div className="space-y-1">
+                  <Label htmlFor="card-brand">Rewards programme</Label>
+                  <Select
+                    value={brandId}
+                    onValueChange={(v) => {
+                      const b = SA_LOYALTY_BRANDS.find((x) => x.id === v);
+                      if (b) applyBrand(b);
+                    }}
+                  >
+                    <SelectTrigger id="card-brand">
+                      <SelectValue placeholder="Choose a South African rewards card" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {Object.entries(groupedBrands).map(([cat, brands]) => (
+                        <SelectGroup key={cat}>
+                          <SelectLabel>{cat}</SelectLabel>
+                          {brands.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Pick a programme to auto-fill the name and brand colour, or scan to detect.</p>
+                </div>
+                <div className="space-y-1">
                   <Label htmlFor="card-name">Card name *</Label>
                   <Input id="card-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pick n Pay Smart Shopper" />
                 </div>
