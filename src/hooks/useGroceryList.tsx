@@ -443,6 +443,41 @@ export function useGroceryList() {
     }
   };
 
+  // Move an item to a different category (and place it at the end of that category)
+  const moveItemToCategory = async (itemId: string, newCategory: string, targetIndex?: number) => {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const targetItems = items
+      .filter(i => i.category === newCategory && i.id !== itemId)
+      .sort((a, b) => ((a as any).sort_order ?? 0) - ((b as any).sort_order ?? 0));
+
+    const insertAt = typeof targetIndex === 'number'
+      ? Math.max(0, Math.min(targetIndex, targetItems.length))
+      : targetItems.length;
+
+    const reordered = [...targetItems];
+    reordered.splice(insertAt, 0, { ...item, category: newCategory as any });
+
+    // Optimistic
+    setItems(prev => prev.map(i => i.id === itemId ? { ...i, category: newCategory as any } : i));
+
+    const { error } = await supabase
+      .from('grocery_items')
+      .update({ category: newCategory } as any)
+      .eq('id', itemId);
+
+    if (error) {
+      console.error('Error moving item to category:', error);
+      toast.error('Failed to move item');
+      await fetchItems();
+      return;
+    }
+
+    // Re-sort the destination column
+    await reorderItems(reordered as any);
+  };
+
   return {
     items,
     loading,
@@ -455,5 +490,6 @@ export function useGroceryList() {
     getFrequentItems,
     deleteKnownItem,
     reorderItems,
+    moveItemToCategory,
   };
 }
