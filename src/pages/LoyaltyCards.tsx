@@ -52,6 +52,19 @@ const LoyaltyCards = () => {
   const [notes, setNotes] = useState('');
   const [brandColor, setBrandColor] = useState('#0ea5e9');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [brandId, setBrandId] = useState<string>('');
+
+  const applyBrand = (brand: LoyaltyBrand, opts?: { keepName?: boolean }) => {
+    setBrandId(brand.id);
+    setBrandColor(brand.color);
+    if (!opts?.keepName || !name.trim()) setName(brand.name);
+  };
+
+  const groupedBrands = SA_LOYALTY_BRANDS.reduce<Record<string, LoyaltyBrand[]>>((acc, b) => {
+    const key = b.category || 'Other';
+    (acc[key] ||= []).push(b);
+    return acc;
+  }, {});
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
