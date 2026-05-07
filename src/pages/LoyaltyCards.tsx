@@ -97,6 +97,7 @@ const LoyaltyCards = () => {
     setNotes('');
     setBrandColor('#0ea5e9');
     setPhotoFile(null);
+    setBrandId('');
   };
 
   const handleSave = async () => {
