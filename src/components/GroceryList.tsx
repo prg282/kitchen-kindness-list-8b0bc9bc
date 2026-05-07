@@ -27,10 +27,16 @@ export function GroceryList() {
     getFrequentItems,
     deleteKnownItem,
     reorderItems,
+    moveItemToCategory,
   } = useGroceryList();
   
   const { profile, signOut } = useAuth();
   const { t } = useLanguage();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   // Group items by category
   const groupedItems = items.reduce((acc, item) => {
