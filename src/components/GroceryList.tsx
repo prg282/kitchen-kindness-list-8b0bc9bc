@@ -8,6 +8,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
 import { SettingsDialog } from './SettingsDialog';
+import {
+  DndContext, DragEndEvent, KeyboardSensor, PointerSensor, closestCorners, useSensor, useSensors,
+} from '@dnd-kit/core';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 
 export function GroceryList() {
   const navigate = useNavigate();
