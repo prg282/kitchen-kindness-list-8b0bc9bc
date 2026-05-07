@@ -1,28 +1,13 @@
 import { useState } from 'react';
-import { Settings, Globe, Crown, Lock, MapPin } from 'lucide-react';
+import { Settings, Crown } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/useLanguage';
-import { languages, LanguageCode } from '@/lib/i18n/translations';
-import { countries, CountryCode, getCountry } from '@/lib/countries';
-import { cn } from '@/lib/utils';
 
 export function SettingsDialog() {
-  const { language, setLanguage, country, setCountry, t, isPremium, premiumPriceLabel } = useLanguage();
+  const { t, isPremium, premiumPriceLabel } = useLanguage();
   const [open, setOpen] = useState(false);
-
-  const handleLanguageChange = async (code: LanguageCode) => {
-    if (!isPremium) return;
-    await setLanguage(code);
-  };
-
-  const handleCountryChange = async (code: CountryCode) => {
-    if (!isPremium) return;
-    await setCountry(code);
-  };
-
-  const selectedCountry = getCountry(country);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -61,93 +46,6 @@ export function SettingsDialog() {
               </div>
             )}
 
-            {/* Country Section */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <h3 className="font-medium text-foreground">Country</h3>
-                </div>
-                {!isPremium && (
-                  <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-full">
-                    <Crown className="w-3 h-3" />
-                    {t('settings.premiumRequired')}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">Select your country for local stores and pricing</p>
-
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                {countries.map((c) => (
-                  <button
-                    key={c.code}
-                    onClick={() => handleCountryChange(c.code)}
-                    disabled={!isPremium}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all duration-200 text-sm",
-                      country === c.code
-                        ? "border-primary bg-primary/10 text-primary font-medium"
-                        : isPremium
-                          ? "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
-                          : "border-border/50 text-muted-foreground opacity-60 cursor-not-allowed"
-                    )}
-                  >
-                    {!isPremium && country !== c.code && (
-                      <Lock className="w-3 h-3 flex-shrink-0" />
-                    )}
-                    <span className="text-lg">{c.flag}</span>
-                    <div className="min-w-0">
-                      <div className="font-medium truncate text-xs">{c.name}</div>
-                      <div className="text-[10px] text-muted-foreground">{c.currencySymbol} {c.currency}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-            </div>
-
-            {/* Language Section */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-primary" />
-                  <h3 className="font-medium text-foreground">{t('settings.language')}</h3>
-                </div>
-                {!isPremium && (
-                  <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-full">
-                    <Crown className="w-3 h-3" />
-                    {t('settings.premiumRequired')}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">{t('settings.languageDescription')}</p>
-
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                {languages.map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => handleLanguageChange(lang.code)}
-                    disabled={!isPremium}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2.5 rounded-lg border text-left transition-all duration-200 text-sm",
-                      language === lang.code
-                        ? "border-primary bg-primary/10 text-primary font-medium"
-                        : isPremium
-                          ? "border-border hover:border-primary/50 hover:bg-muted/50 text-foreground"
-                          : "border-border/50 text-muted-foreground opacity-60 cursor-not-allowed"
-                    )}
-                  >
-                    {!isPremium && language !== lang.code && (
-                      <Lock className="w-3 h-3 flex-shrink-0" />
-                    )}
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{lang.nativeName}</div>
-                      <div className="text-xs text-muted-foreground truncate">{lang.name}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </ScrollArea>
       </DialogContent>
