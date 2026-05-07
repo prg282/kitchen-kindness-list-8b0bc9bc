@@ -1,28 +1,13 @@
 import { useState } from 'react';
-import { Settings, Globe, Crown, Lock, MapPin } from 'lucide-react';
+import { Settings, Crown } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/useLanguage';
-import { languages, LanguageCode } from '@/lib/i18n/translations';
-import { countries, CountryCode, getCountry } from '@/lib/countries';
-import { cn } from '@/lib/utils';
 
 export function SettingsDialog() {
-  const { language, setLanguage, country, setCountry, t, isPremium, premiumPriceLabel } = useLanguage();
+  const { t, isPremium, premiumPriceLabel } = useLanguage();
   const [open, setOpen] = useState(false);
-
-  const handleLanguageChange = async (code: LanguageCode) => {
-    if (!isPremium) return;
-    await setLanguage(code);
-  };
-
-  const handleCountryChange = async (code: CountryCode) => {
-    if (!isPremium) return;
-    await setCountry(code);
-  };
-
-  const selectedCountry = getCountry(country);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
