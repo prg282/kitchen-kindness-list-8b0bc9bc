@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,16 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image as ImageIcon, Search, Pencil, Maximize2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { BarcodeDisplay } from '@/components/BarcodeDisplay';
-import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
+import { BrandPicker } from '@/components/BrandPicker';
+import { FullscreenBarcode } from '@/components/FullscreenBarcode';
 import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, type LoyaltyBrand } from '@/lib/loyaltyCards';
 
 interface LoyaltyCard {
@@ -34,6 +34,10 @@ interface LoyaltyCard {
 
 const BUCKET = 'loyalty-card-photos';
 
+function brandInitials(name: string) {
+  return name.replace(/\(.*?\)/g, '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+}
+
 const LoyaltyCards = () => {
   const navigate = useNavigate();
   const { user, profile, loading: authLoading } = useAuth();
@@ -41,8 +45,15 @@ const LoyaltyCards = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [scanning, setScanning] = useState(false);
+  const [pickingBrand, setPickingBrand] = useState(false);
   const [saving, setSaving] = useState(false);
   const [viewing, setViewing] = useState<LoyaltyCard | null>(null);
+  const [fullscreenCard, setFullscreenCard] = useState<LoyaltyCard | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   // Form state
   const [name, setName] = useState('');
@@ -52,19 +63,11 @@ const LoyaltyCards = () => {
   const [notes, setNotes] = useState('');
   const [brandColor, setBrandColor] = useState('#0ea5e9');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [brandId, setBrandId] = useState<string>('');
 
   const applyBrand = (brand: LoyaltyBrand, opts?: { keepName?: boolean }) => {
-    setBrandId(brand.id);
     setBrandColor(brand.color);
     if (!opts?.keepName || !name.trim()) setName(brand.name);
   };
-
-  const groupedBrands = SA_LOYALTY_BRANDS.reduce<Record<string, LoyaltyBrand[]>>((acc, b) => {
-    const key = b.category || 'Other';
-    (acc[key] ||= []).push(b);
-    return acc;
-  }, {});
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -97,7 +100,25 @@ const LoyaltyCards = () => {
     setNotes('');
     setBrandColor('#0ea5e9');
     setPhotoFile(null);
-    setBrandId('');
+    setEditingId(null);
+  };
+
+  const openAdd = () => {
+    resetForm();
+    setOpen(true);
+  };
+
+  const openEdit = (card: LoyaltyCard) => {
+    setEditingId(card.id);
+    setName(card.name);
+    setCardNumber(card.card_number || '');
+    setBarcodeValue(card.barcode_value || '');
+    setBarcodeFormat(card.barcode_format);
+    setNotes(card.notes || '');
+    setBrandColor(card.brand_color || '#0ea5e9');
+    setPhotoFile(null);
+    setViewing(null);
+    setOpen(true);
   };
 
   const handleSave = async () => {
@@ -108,7 +129,7 @@ const LoyaltyCards = () => {
     }
     setSaving(true);
     try {
-      let photoPath: string | null = null;
+      let photoPath: string | null | undefined = undefined;
       if (photoFile) {
         const ext = photoFile.name.split('.').pop() || 'jpg';
         const path = `${profile.household_id}/${crypto.randomUUID()}.${ext}`;
@@ -120,19 +141,30 @@ const LoyaltyCards = () => {
         photoPath = path;
       }
 
-      const { error } = await supabase.from('loyalty_cards').insert({
-        household_id: profile.household_id,
-        created_by: user!.id,
+      const payload: any = {
         name: name.trim().slice(0, 100),
         card_number: cardNumber.trim().slice(0, 100) || null,
         barcode_value: barcodeValue.trim().slice(0, 200) || null,
         barcode_format: barcodeFormat,
         notes: notes.trim().slice(0, 500) || null,
         brand_color: brandColor,
-        photo_path: photoPath,
-      });
-      if (error) throw error;
-      toast.success('Card added');
+      };
+      if (photoPath !== undefined) payload.photo_path = photoPath;
+
+      if (editingId) {
+        const { error } = await supabase.from('loyalty_cards').update(payload).eq('id', editingId);
+        if (error) throw error;
+        toast.success('Card updated');
+      } else {
+        const { error } = await supabase.from('loyalty_cards').insert({
+          ...payload,
+          household_id: profile.household_id,
+          created_by: user!.id,
+          photo_path: photoPath ?? null,
+        });
+        if (error) throw error;
+        toast.success('Card added');
+      }
       resetForm();
       setOpen(false);
       loadCards();
@@ -164,6 +196,28 @@ const LoyaltyCards = () => {
     return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
   };
 
+  // Categories present in saved cards (matched against brand list by name)
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    cards.forEach((c) => {
+      const b = SA_LOYALTY_BRANDS.find((x) => x.name === c.name);
+      if (b?.category) set.add(b.category);
+    });
+    return ['All', ...Array.from(set).sort()];
+  }, [cards]);
+
+  const filteredCards = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return cards.filter((c) => {
+      if (q && !c.name.toLowerCase().includes(q) && !(c.card_number || '').toLowerCase().includes(q)) return false;
+      if (activeCategory !== 'All') {
+        const b = SA_LOYALTY_BRANDS.find((x) => x.name === c.name);
+        if (b?.category !== activeCategory) return false;
+      }
+      return true;
+    });
+  }, [cards, search, activeCategory]);
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -186,105 +240,115 @@ const LoyaltyCards = () => {
             <h1 className="text-2xl sm:text-3xl font-serif text-foreground">Rewards Cards</h1>
             <p className="text-sm text-muted-foreground">Loyalty cards shared with your household</p>
           </div>
-          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" /> Add Card
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add a rewards card</DialogTitle>
-                <DialogDescription>
-                  Capture the barcode with your camera or enter details manually.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="card-brand">Rewards programme</Label>
-                  <Select
-                    value={brandId}
-                    onValueChange={(v) => {
-                      const b = SA_LOYALTY_BRANDS.find((x) => x.id === v);
-                      if (b) applyBrand(b);
-                    }}
-                  >
-                    <SelectTrigger id="card-brand">
-                      <SelectValue placeholder="Choose a South African rewards card" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {Object.entries(groupedBrands).map(([cat, brands]) => (
-                        <SelectGroup key={cat}>
-                          <SelectLabel>{cat}</SelectLabel>
-                          {brands.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                          ))}
-                        </SelectGroup>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">Pick a programme to auto-fill the name and brand colour, or scan to detect.</p>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="card-name">Card name *</Label>
-                  <Input id="card-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pick n Pay Smart Shopper" />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="card-number">Card number</Label>
-                  <Input id="card-number" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="Printed card number" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Barcode</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={barcodeValue}
-                      onChange={(e) => { setBarcodeValue(e.target.value); setBarcodeFormat(null); }}
-                      placeholder="Scan or type the barcode value"
-                    />
-                    <Button type="button" variant="outline" onClick={() => setScanning(true)}>
-                      <ScanLine className="w-4 h-4 mr-1" /> Scan
-                    </Button>
-                  </div>
-                  {barcodeFormat && (
-                    <p className="text-xs text-muted-foreground">Detected: {barcodeFormat}</p>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="card-photo">Card photo</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="card-photo"
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
-                    />
-                    <Camera className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                  {photoFile && <p className="text-xs text-muted-foreground">{photoFile.name}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="card-color">Brand colour</Label>
-                    <Input id="card-color" type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="h-10 p-1" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="card-notes">Notes</Label>
-                  <Textarea id="card-notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} rows={2} />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-                  Save card
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={openAdd}>
+            <Plus className="w-4 h-4 mr-2" /> Add Card
+          </Button>
         </div>
+
+        {cards.length > 0 && (
+          <div className="container pb-4 space-y-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search your cards..."
+                className="pl-9"
+              />
+            </div>
+            {categories.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {categories.map((cat) => (
+                  <Badge
+                    key={cat}
+                    variant={activeCategory === cat ? 'default' : 'secondary'}
+                    className="cursor-pointer whitespace-nowrap"
+                    onClick={() => setActiveCategory(cat)}
+                  >
+                    {cat}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </header>
+
+      {/* Add / Edit dialog */}
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingId ? 'Edit rewards card' : 'Add a rewards card'}</DialogTitle>
+            <DialogDescription>
+              Pick a programme, scan the barcode, or enter details manually.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Rewards programme</Label>
+              <Button type="button" variant="outline" className="w-full justify-start" onClick={() => setPickingBrand(true)}>
+                <div className="w-6 h-6 rounded mr-2" style={{ background: brandColor }} />
+                {name || 'Browse South African brands...'}
+              </Button>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="card-name">Card name *</Label>
+              <Input id="card-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Pick n Pay Smart Shopper" />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="card-number">Card number</Label>
+              <Input id="card-number" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="Printed card number" />
+            </div>
+            <div className="space-y-1">
+              <Label>Barcode</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={barcodeValue}
+                  onChange={(e) => { setBarcodeValue(e.target.value); setBarcodeFormat(null); }}
+                  placeholder="Scan or type the barcode value"
+                />
+                <Button type="button" variant="outline" onClick={() => setScanning(true)}>
+                  <ScanLine className="w-4 h-4 mr-1" /> Scan
+                </Button>
+              </div>
+              {barcodeFormat && (
+                <p className="text-xs text-muted-foreground">Detected: {barcodeFormat}</p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="card-photo">Card photo</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="card-photo"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                />
+                <Camera className="w-4 h-4 text-muted-foreground" />
+              </div>
+              {photoFile && <p className="text-xs text-muted-foreground">{photoFile.name}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="card-color">Brand colour</Label>
+                <Input id="card-color" type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="h-10 p-1" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="card-notes">Notes</Label>
+              <Textarea id="card-notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              {editingId ? 'Save changes' : 'Save card'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <main className="container py-6">
         {cards.length === 0 ? (
@@ -292,15 +356,24 @@ const LoyaltyCards = () => {
             <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>No rewards cards yet. Add your first one to get started.</p>
           </div>
+        ) : filteredCards.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">
+            <p>No cards match your search.</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cards.map((card) => (
+            {filteredCards.map((card) => (
               <Card
                 key={card.id}
                 className="cursor-pointer overflow-hidden transition-transform hover:-translate-y-0.5"
                 onClick={() => setViewing(card)}
               >
-                <div className="h-20" style={{ background: card.brand_color || 'hsl(var(--primary))' }} />
+                <div
+                  className="h-20 flex items-center justify-center text-white font-bold text-2xl"
+                  style={{ background: card.brand_color || 'hsl(var(--primary))' }}
+                >
+                  {brandInitials(card.name)}
+                </div>
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center justify-between text-lg">
                     <span className="truncate">{card.name}</span>
@@ -329,10 +402,17 @@ const LoyaltyCards = () => {
               </DialogHeader>
               <div className="space-y-4">
                 {viewing.barcode_value ? (
-                  <div className="rounded-lg bg-white p-4">
+                  <button
+                    type="button"
+                    onClick={() => setFullscreenCard(viewing)}
+                    className="w-full rounded-lg bg-white p-4 hover:ring-2 hover:ring-primary transition relative group"
+                  >
                     <BarcodeDisplay value={viewing.barcode_value} format={viewing.barcode_format} />
                     <p className="text-center text-xs font-mono text-black mt-2">{viewing.barcode_value}</p>
-                  </div>
+                    <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                      <Maximize2 className="w-3 h-3" /> Fullscreen
+                    </span>
+                  </button>
                 ) : viewing.card_number ? (
                   <p className="text-2xl text-center font-mono">{viewing.card_number}</p>
                 ) : (
@@ -349,16 +429,29 @@ const LoyaltyCards = () => {
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{viewing.notes}</p>
                 )}
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-wrap gap-2">
                 <Button variant="destructive" onClick={() => handleDelete(viewing)}>
                   <Trash2 className="w-4 h-4 mr-2" /> Delete
                 </Button>
-                <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
+                <Button variant="outline" onClick={() => openEdit(viewing)}>
+                  <Pencil className="w-4 h-4 mr-2" /> Edit
+                </Button>
+                {viewing.barcode_value && (
+                  <Button onClick={() => setFullscreenCard(viewing)}>
+                    <Maximize2 className="w-4 h-4 mr-2" /> Show at till
+                  </Button>
+                )}
               </DialogFooter>
             </>
           )}
         </DialogContent>
       </Dialog>
+
+      <BrandPicker
+        open={pickingBrand}
+        onClose={() => setPickingBrand(false)}
+        onPick={(b) => applyBrand(b)}
+      />
 
       <BarcodeScanner
         open={scanning}
@@ -377,6 +470,18 @@ const LoyaltyCards = () => {
           }
         }}
       />
+
+      {fullscreenCard && fullscreenCard.barcode_value && (
+        <FullscreenBarcode
+          open={!!fullscreenCard}
+          onClose={() => setFullscreenCard(null)}
+          title={fullscreenCard.name}
+          value={fullscreenCard.barcode_value}
+          format={fullscreenCard.barcode_format}
+          cardNumber={fullscreenCard.card_number}
+          brandColor={fullscreenCard.brand_color}
+        />
+      )}
     </div>
   );
 };
