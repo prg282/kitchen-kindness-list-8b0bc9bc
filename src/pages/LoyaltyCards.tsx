@@ -287,9 +287,9 @@ const LoyaltyCards = () => {
           <div className="space-y-3">
             <div className="space-y-1">
               <Label>Rewards programme</Label>
-              <Button type="button" variant="outline" className="w-full justify-start" onClick={() => setPickingBrand(true)}>
-                <div className="w-6 h-6 rounded mr-2" style={{ background: brandColor }} />
-                {name || 'Browse South African brands...'}
+              <Button type="button" variant="outline" className="w-full justify-start h-auto py-2" onClick={() => setPickingBrand(true)}>
+                <BrandLogo brand={findBrandByName(name)} name={name} color={brandColor} className="w-8 h-8 mr-2" />
+                <span className="truncate">{name || 'Browse South African brands...'}</span>
               </Button>
             </div>
             <div className="space-y-1">
