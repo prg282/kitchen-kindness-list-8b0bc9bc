@@ -60,12 +60,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
                       onClick={() => { onPick(b); onClose(); }}
                       className="flex items-center gap-2 p-2 rounded-lg border border-border hover:border-primary hover:bg-accent transition text-left"
                     >
-                      <div
-                        className="w-10 h-10 rounded-md flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{ background: b.color }}
-                      >
-                        {initials(b.name)}
-                      </div>
+                      <BrandLogo brand={b} />
                       <span className="text-xs leading-tight line-clamp-2">{b.name}</span>
                     </button>
                   ))}
