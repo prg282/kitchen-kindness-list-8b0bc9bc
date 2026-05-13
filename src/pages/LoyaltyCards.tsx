@@ -370,10 +370,16 @@ const LoyaltyCards = () => {
                 onClick={() => setViewing(card)}
               >
                 <div
-                  className="h-20 flex items-center justify-center text-white font-bold text-2xl"
+                  className="h-24 flex items-center justify-center p-3"
                   style={{ background: card.brand_color || 'hsl(var(--primary))' }}
                 >
-                  {brandInitials(card.name)}
+                  <BrandLogo
+                    name={card.name}
+                    color={card.brand_color}
+                    className="w-20 h-16"
+                    textClassName="text-2xl"
+                    rounded="rounded-lg"
+                  />
                 </div>
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center justify-between text-lg">
