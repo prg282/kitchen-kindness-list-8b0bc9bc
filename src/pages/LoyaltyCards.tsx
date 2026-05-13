@@ -17,7 +17,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { BarcodeDisplay } from '@/components/BarcodeDisplay';
 import { BrandPicker } from '@/components/BrandPicker';
 import { FullscreenBarcode } from '@/components/FullscreenBarcode';
-import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, type LoyaltyBrand } from '@/lib/loyaltyCards';
+import { BrandLogo } from '@/components/BrandLogo';
+import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, findBrandByName, type LoyaltyBrand } from '@/lib/loyaltyCards';
 
 interface LoyaltyCard {
   id: string;
