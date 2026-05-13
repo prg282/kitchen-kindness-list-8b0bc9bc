@@ -69,9 +69,18 @@ export function fetchAndCacheLogo(domain: string, url: string): Promise<string |
 
   const p = (async () => {
     try {
-      const res = await fetch(url, { cache: 'force-cache' });
-      if (!res.ok) throw new Error(`status ${res.status}`);
+      // Use CORS mode so we can read the body. If the server doesn't allow
+      // CORS the fetch will reject — that's fine, the <img> tag can still
+      // load the URL directly via the browser's HTTP cache. We only poison
+      // the cache on a real image load error (onError), not on fetch failure.
+      const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+      if (!res.ok) {
+        // 404 etc. — definitively missing
+        if (res.status === 404) writeStorage(domain, { dataUrl: null, ts: Date.now() });
+        return null;
+      }
       const blob = await res.blob();
+      if (!blob.type.startsWith('image/')) return null;
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
@@ -81,7 +90,7 @@ export function fetchAndCacheLogo(domain: string, url: string): Promise<string |
       writeStorage(domain, { dataUrl, ts: Date.now() });
       return dataUrl;
     } catch {
-      writeStorage(domain, { dataUrl: null, ts: Date.now() });
+      // Network/CORS failure — don't cache, let <img> try directly.
       return null;
     } finally {
       inflight.delete(domain);
