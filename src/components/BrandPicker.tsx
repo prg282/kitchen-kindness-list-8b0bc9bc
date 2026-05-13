@@ -3,23 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SA_LOYALTY_BRANDS, type LoyaltyBrand } from '@/lib/loyaltyCards';
+import { BrandLogo } from '@/components/BrandLogo';
 import { Search } from 'lucide-react';
 
 interface BrandPickerProps {
   open: boolean;
   onClose: () => void;
   onPick: (brand: LoyaltyBrand) => void;
-}
-
-function initials(name: string) {
-  return name
-    .replace(/\(.*?\)/g, '')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
 }
 
 export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
@@ -70,12 +60,7 @@ export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
                       onClick={() => { onPick(b); onClose(); }}
                       className="flex items-center gap-2 p-2 rounded-lg border border-border hover:border-primary hover:bg-accent transition text-left"
                     >
-                      <div
-                        className="w-10 h-10 rounded-md flex items-center justify-center text-white text-xs font-bold shrink-0"
-                        style={{ background: b.color }}
-                      >
-                        {initials(b.name)}
-                      </div>
+                      <BrandLogo brand={b} />
                       <span className="text-xs leading-tight line-clamp-2">{b.name}</span>
                     </button>
                   ))}

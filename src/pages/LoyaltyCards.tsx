@@ -17,7 +17,8 @@ import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { BarcodeDisplay } from '@/components/BarcodeDisplay';
 import { BrandPicker } from '@/components/BrandPicker';
 import { FullscreenBarcode } from '@/components/FullscreenBarcode';
-import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, type LoyaltyBrand } from '@/lib/loyaltyCards';
+import { BrandLogo } from '@/components/BrandLogo';
+import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, findBrandByName, type LoyaltyBrand } from '@/lib/loyaltyCards';
 
 interface LoyaltyCard {
   id: string;
@@ -286,9 +287,9 @@ const LoyaltyCards = () => {
           <div className="space-y-3">
             <div className="space-y-1">
               <Label>Rewards programme</Label>
-              <Button type="button" variant="outline" className="w-full justify-start" onClick={() => setPickingBrand(true)}>
-                <div className="w-6 h-6 rounded mr-2" style={{ background: brandColor }} />
-                {name || 'Browse South African brands...'}
+              <Button type="button" variant="outline" className="w-full justify-start h-auto py-2" onClick={() => setPickingBrand(true)}>
+                <BrandLogo brand={findBrandByName(name)} name={name} color={brandColor} className="w-8 h-8 mr-2" />
+                <span className="truncate">{name || 'Browse South African brands...'}</span>
               </Button>
             </div>
             <div className="space-y-1">
@@ -369,10 +370,16 @@ const LoyaltyCards = () => {
                 onClick={() => setViewing(card)}
               >
                 <div
-                  className="h-20 flex items-center justify-center text-white font-bold text-2xl"
+                  className="h-24 flex items-center justify-center p-3"
                   style={{ background: card.brand_color || 'hsl(var(--primary))' }}
                 >
-                  {brandInitials(card.name)}
+                  <BrandLogo
+                    name={card.name}
+                    color={card.brand_color}
+                    className="w-20 h-16"
+                    textClassName="text-2xl"
+                    rounded="rounded-lg"
+                  />
                 </div>
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center justify-between text-lg">
