@@ -2,9 +2,20 @@
 // Stores fetched logos as data URLs in localStorage so they load instantly on
 // subsequent visits and aren't re-fetched from the network every time.
 
-const STORAGE_PREFIX = 'brandLogo:v1:';
+const STORAGE_PREFIX = 'brandLogo:v2:';
 const NEGATIVE_TTL_MS = 1000 * 60 * 60 * 24 * 7; // re-try failed logos after a week
 const POSITIVE_TTL_MS = 1000 * 60 * 60 * 24 * 30; // refresh cached logos monthly
+
+// One-time cleanup of the v1 cache that incorrectly marked logos as missing
+// when CORS-blocked fetches failed.
+if (typeof localStorage !== 'undefined') {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('brandLogo:v1:')) localStorage.removeItem(k);
+    }
+  } catch { /* ignore */ }
+}
 
 interface CacheEntry {
   dataUrl: string | null; // null = known-missing
@@ -69,9 +80,18 @@ export function fetchAndCacheLogo(domain: string, url: string): Promise<string |
 
   const p = (async () => {
     try {
-      const res = await fetch(url, { cache: 'force-cache' });
-      if (!res.ok) throw new Error(`status ${res.status}`);
+      // Use CORS mode so we can read the body. If the server doesn't allow
+      // CORS the fetch will reject — that's fine, the <img> tag can still
+      // load the URL directly via the browser's HTTP cache. We only poison
+      // the cache on a real image load error (onError), not on fetch failure.
+      const res = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+      if (!res.ok) {
+        // 404 etc. — definitively missing
+        if (res.status === 404) writeStorage(domain, { dataUrl: null, ts: Date.now() });
+        return null;
+      }
       const blob = await res.blob();
+      if (!blob.type.startsWith('image/')) return null;
       const dataUrl = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
@@ -81,7 +101,7 @@ export function fetchAndCacheLogo(domain: string, url: string): Promise<string |
       writeStorage(domain, { dataUrl, ts: Date.now() });
       return dataUrl;
     } catch {
-      writeStorage(domain, { dataUrl: null, ts: Date.now() });
+      // Network/CORS failure — don't cache, let <img> try directly.
       return null;
     } finally {
       inflight.delete(domain);
