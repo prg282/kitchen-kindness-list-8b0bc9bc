@@ -2,9 +2,20 @@
 // Stores fetched logos as data URLs in localStorage so they load instantly on
 // subsequent visits and aren't re-fetched from the network every time.
 
-const STORAGE_PREFIX = 'brandLogo:v1:';
+const STORAGE_PREFIX = 'brandLogo:v2:';
 const NEGATIVE_TTL_MS = 1000 * 60 * 60 * 24 * 7; // re-try failed logos after a week
 const POSITIVE_TTL_MS = 1000 * 60 * 60 * 24 * 30; // refresh cached logos monthly
+
+// One-time cleanup of the v1 cache that incorrectly marked logos as missing
+// when CORS-blocked fetches failed.
+if (typeof localStorage !== 'undefined') {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('brandLogo:v1:')) localStorage.removeItem(k);
+    }
+  } catch { /* ignore */ }
+}
 
 interface CacheEntry {
   dataUrl: string | null; // null = known-missing
