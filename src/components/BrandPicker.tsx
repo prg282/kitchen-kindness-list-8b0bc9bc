@@ -3,23 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SA_LOYALTY_BRANDS, type LoyaltyBrand } from '@/lib/loyaltyCards';
+import { BrandLogo } from '@/components/BrandLogo';
 import { Search } from 'lucide-react';
 
 interface BrandPickerProps {
   open: boolean;
   onClose: () => void;
   onPick: (brand: LoyaltyBrand) => void;
-}
-
-function initials(name: string) {
-  return name
-    .replace(/\(.*?\)/g, '')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
 }
 
 export function BrandPicker({ open, onClose, onPick }: BrandPickerProps) {
