@@ -194,10 +194,28 @@ const LoyaltyCards = () => {
     }
   };
 
-  const photoUrl = (path: string | null) => {
-    if (!path) return null;
-    return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-  };
+  const [viewingPhotoUrl, setViewingPhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!viewing?.photo_path) {
+      setViewingPhotoUrl(null);
+      return;
+    }
+    supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(viewing.photo_path, 300)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error('Failed to sign photo URL:', error);
+          setViewingPhotoUrl(null);
+        } else {
+          setViewingPhotoUrl(data?.signedUrl ?? null);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [viewing?.photo_path]);
 
   // Categories present in saved cards (matched against brand list by name)
   const categories = useMemo(() => {
@@ -432,9 +450,9 @@ const LoyaltyCards = () => {
                 {!viewing.barcode_value && !viewing.card_number && (
                   <p className="text-sm text-muted-foreground text-center">No barcode or number stored.</p>
                 )}
-                {viewing.photo_path && (
+                {viewing.photo_path && viewingPhotoUrl && (
                   <img
-                    src={photoUrl(viewing.photo_path)!}
+                    src={viewingPhotoUrl}
                     alt={viewing.name}
                     className="w-full rounded-lg border border-border"
                   />
