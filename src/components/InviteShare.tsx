@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Share2, Copy, Mail, MessageCircle, Check, KeyRound } from 'lucide-react';
+import { Loader2, Share2, Copy, Mail, MessageCircle, Check, KeyRound, QrCode, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface InviteShareProps {
