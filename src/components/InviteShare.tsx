@@ -49,8 +49,27 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
     return `${window.location.origin}/join/${inviteCode}`;
   };
 
+  useEffect(() => {
+    if (!inviteCode) {
+      setQrDataUrl(null);
+      return;
+    }
+    const url = `${window.location.origin}/join/${inviteCode}`;
+    QRCode.toDataURL(url, { width: 320, margin: 2, errorCorrectionLevel: 'M' })
+      .then(setQrDataUrl)
+      .catch((err) => console.warn('QR generation failed:', err));
+  }, [inviteCode]);
+
   const getInviteMessage = () => {
     return `Join my household "${householdName}" on our Grocery List app!\n\nClick here to join: ${getInviteUrl()}\n\nPIN: ${invitePin}`;
+  };
+
+  const downloadQr = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement('a');
+    a.href = qrDataUrl;
+    a.download = `household-invite-${inviteCode}.png`;
+    a.click();
   };
 
   const copyToClipboard = async () => {
