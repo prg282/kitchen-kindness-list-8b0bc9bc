@@ -450,9 +450,9 @@ const LoyaltyCards = () => {
                 {!viewing.barcode_value && !viewing.card_number && (
                   <p className="text-sm text-muted-foreground text-center">No barcode or number stored.</p>
                 )}
-                {viewing.photo_path && (
+                {viewing.photo_path && viewingPhotoUrl && (
                   <img
-                    src={photoUrl(viewing.photo_path)!}
+                    src={viewingPhotoUrl}
                     alt={viewing.name}
                     className="w-full rounded-lg border border-border"
                   />
