@@ -18,6 +18,8 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pinCopied, setPinCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateInviteLink = async () => {
     setGenerating(true);
