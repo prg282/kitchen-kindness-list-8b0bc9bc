@@ -158,6 +158,28 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
                 {getInviteUrl()}
               </p>
             </div>
+
+            {qrDataUrl && (
+              <div className="p-3 sm:p-4 rounded-lg bg-card border border-border flex flex-col items-center gap-3">
+                <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 self-start">
+                  <QrCode className="w-3 h-3 shrink-0" />
+                  <span>Scan QR to join</span>
+                </p>
+                <img
+                  src={qrDataUrl}
+                  alt={`QR code to join ${householdName}`}
+                  className="w-44 h-44 sm:w-56 sm:h-56 rounded bg-white p-2"
+                />
+                <Button variant="outline" size="sm" onClick={downloadQr} className="w-full sm:w-auto">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download QR
+                </Button>
+                <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
+                  Recipient still needs the PIN to join.
+                </p>
+              </div>
+            )}
+            
             
             <div className="p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
               <div className="flex items-center justify-between gap-2">
