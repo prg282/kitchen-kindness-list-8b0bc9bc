@@ -408,7 +408,7 @@ const LoyaltyCards = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                {viewing.barcode_value ? (
+                {viewing.barcode_value && (
                   <button
                     type="button"
                     onClick={() => setFullscreenCard(viewing)}
@@ -416,13 +416,18 @@ const LoyaltyCards = () => {
                   >
                     <BarcodeDisplay value={viewing.barcode_value} format={viewing.barcode_format} />
                     <p className="text-center text-xs font-mono text-black mt-2">{viewing.barcode_value}</p>
-                    <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <span className="absolute top-2 right-2 bg-black/60 text-primary-foreground text-xs px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                       <Maximize2 className="w-3 h-3" /> Fullscreen
                     </span>
                   </button>
-                ) : viewing.card_number ? (
-                  <p className="text-2xl text-center font-mono">{viewing.card_number}</p>
-                ) : (
+                )}
+                {viewing.card_number && (
+                  <div className="rounded-lg border border-border p-3 text-center">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Card number</p>
+                    <p className="text-xl font-mono">{viewing.card_number}</p>
+                  </div>
+                )}
+                {!viewing.barcode_value && !viewing.card_number && (
                   <p className="text-sm text-muted-foreground text-center">No barcode or number stored.</p>
                 )}
                 {viewing.photo_path && (
