@@ -147,15 +147,15 @@ Deno.serve(async (req) => {
 
     console.log('Creating user account...');
 
-    // Create user with admin client; pass join_household_id so the
-    // handle_new_user trigger places this profile in the shared household.
+    // Create user with admin client. We deliberately do NOT pass
+    // join_household_id in user_metadata — the handle_new_user trigger
+    // ignores it, and the household is assigned below via a service-role RPC.
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: generatedEmail,
       password: generatedPassword,
       email_confirm: true,
       user_metadata: {
         display_name: userName,
-        join_household_id: invitation.household_id,
       },
     });
 
@@ -170,19 +170,30 @@ Deno.serve(async (req) => {
     const userId = authData.user.id;
     console.log('User created:', userId);
 
-    // Update profile to join household (trigger already created the profile, but we update household_id)
-    console.log('Updating profile with household...');
+    // Assign the new user to the invited household via the secure admin RPC.
+    // This is the only path that can change profiles.household_id.
+    console.log('Assigning household via admin RPC...');
+    const { error: assignError } = await supabaseAdmin.rpc('admin_assign_household', {
+      p_user_id: userId,
+      p_household_id: invitation.household_id,
+    });
+
+    if (assignError) {
+      console.error('Failed to assign household:', assignError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to join household' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Update the display name (non-sensitive column, normal UPDATE is fine).
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .update({ 
-        household_id: invitation.household_id,
-        display_name: userName,
-      })
+      .update({ display_name: userName })
       .eq('id', userId);
 
     if (profileError) {
-      console.error('Failed to update profile:', profileError);
-      // Don't fail completely, user can still fix this
+      console.error('Failed to update profile display name:', profileError);
     }
 
     // Mark invitation as used
