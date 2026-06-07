@@ -450,6 +450,11 @@ const LoyaltyCards = () => {
                 <Button variant="outline" onClick={() => openEdit(viewing)}>
                   <Pencil className="w-4 h-4 mr-2" /> Edit
                 </Button>
+                {(viewing.barcode_value || viewing.card_number) && (
+                  <Button variant="outline" onClick={() => setPrintingCard(viewing)}>
+                    <Printer className="w-4 h-4 mr-2" /> Print
+                  </Button>
+                )}
                 {viewing.barcode_value && (
                   <Button onClick={() => setFullscreenCard(viewing)}>
                     <Maximize2 className="w-4 h-4 mr-2" /> Show at till
