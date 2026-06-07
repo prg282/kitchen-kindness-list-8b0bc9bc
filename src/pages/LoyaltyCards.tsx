@@ -56,6 +56,7 @@ const LoyaltyCards = () => {
   // Filters
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [printingCard, setPrintingCard] = useState<LoyaltyCard | null>(null);
 
   // Form state
   const [name, setName] = useState('');
