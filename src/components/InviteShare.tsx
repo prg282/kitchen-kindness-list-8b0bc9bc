@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Share2, Copy, Mail, MessageCircle, Check, KeyRound } from 'lucide-react';
+import { Loader2, Share2, Copy, Mail, MessageCircle, Check, KeyRound, QrCode, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface InviteShareProps {
@@ -17,6 +18,8 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pinCopied, setPinCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateInviteLink = async () => {
     setGenerating(true);
@@ -46,8 +49,27 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
     return `${window.location.origin}/join/${inviteCode}`;
   };
 
+  useEffect(() => {
+    if (!inviteCode) {
+      setQrDataUrl(null);
+      return;
+    }
+    const url = `${window.location.origin}/join/${inviteCode}`;
+    QRCode.toDataURL(url, { width: 320, margin: 2, errorCorrectionLevel: 'M' })
+      .then(setQrDataUrl)
+      .catch((err) => console.warn('QR generation failed:', err));
+  }, [inviteCode]);
+
   const getInviteMessage = () => {
     return `Join my household "${householdName}" on our Grocery List app!\n\nClick here to join: ${getInviteUrl()}\n\nPIN: ${invitePin}`;
+  };
+
+  const downloadQr = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement('a');
+    a.href = qrDataUrl;
+    a.download = `household-invite-${inviteCode}.png`;
+    a.click();
   };
 
   const copyToClipboard = async () => {
@@ -136,6 +158,28 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
                 {getInviteUrl()}
               </p>
             </div>
+
+            {qrDataUrl && (
+              <div className="p-3 sm:p-4 rounded-lg bg-card border border-border flex flex-col items-center gap-3">
+                <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 self-start">
+                  <QrCode className="w-3 h-3 shrink-0" />
+                  <span>Scan QR to join</span>
+                </p>
+                <img
+                  src={qrDataUrl}
+                  alt={`QR code to join ${householdName}`}
+                  className="w-44 h-44 sm:w-56 sm:h-56 rounded bg-white p-2"
+                />
+                <Button variant="outline" size="sm" onClick={downloadQr} className="w-full sm:w-auto">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download QR
+                </Button>
+                <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
+                  Recipient still needs the PIN to join.
+                </p>
+              </div>
+            )}
+            
             
             <div className="p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
               <div className="flex items-center justify-between gap-2">
