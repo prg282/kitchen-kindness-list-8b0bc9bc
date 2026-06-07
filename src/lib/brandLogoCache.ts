@@ -2,17 +2,20 @@
 // Stores fetched logos as data URLs in localStorage so they load instantly on
 // subsequent visits and aren't re-fetched from the network every time.
 
-const STORAGE_PREFIX = 'brandLogo:v2:';
+const STORAGE_PREFIX = 'brandLogo:v3:';
 const NEGATIVE_TTL_MS = 1000 * 60 * 60 * 24 * 7; // re-try failed logos after a week
 const POSITIVE_TTL_MS = 1000 * 60 * 60 * 24 * 30; // refresh cached logos monthly
 
-// One-time cleanup of the v1 cache that incorrectly marked logos as missing
-// when CORS-blocked fetches failed.
+// Drop older cache versions whose entries were keyed against deprecated
+// providers (Clearbit-only) so users automatically pick up the new
+// multi-source logos.
 if (typeof localStorage !== 'undefined') {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k && k.startsWith('brandLogo:v1:')) localStorage.removeItem(k);
+      if (k && (k.startsWith('brandLogo:v1:') || k.startsWith('brandLogo:v2:'))) {
+        localStorage.removeItem(k);
+      }
     }
   } catch { /* ignore */ }
 }
