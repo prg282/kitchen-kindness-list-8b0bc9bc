@@ -501,6 +501,16 @@ const LoyaltyCards = () => {
           brandColor={fullscreenCard.brand_color}
         />
       )}
+
+      {printingCard && (
+        <PrintableCard
+          name={printingCard.name}
+          cardNumber={printingCard.card_number}
+          barcodeValue={printingCard.barcode_value}
+          barcodeFormat={printingCard.barcode_format}
+          onDone={() => setPrintingCard(null)}
+        />
+      )}
     </div>
   );
 };
