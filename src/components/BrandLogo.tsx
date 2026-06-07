@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { brandLogoUrl, findBrandByName, type LoyaltyBrand } from '@/lib/loyaltyCards';
+import { useEffect, useMemo, useState } from 'react';
+import { brandLogoCandidates, findBrandByName, type LoyaltyBrand } from '@/lib/loyaltyCards';
 import { fetchAndCacheLogo, getCachedLogo, markLogoMissing } from '@/lib/brandLogoCache';
 
 function initials(name: string) {
@@ -23,9 +23,9 @@ interface BrandLogoProps {
 }
 
 /**
- * Renders a store logo from clearbit when a domain is known, falling back
- * to initials on a coloured tile. Logos are cached as data URLs in
- * localStorage so they load instantly on repeat views.
+ * Renders a store logo by trying several free logo services in order
+ * (Google favicons → DuckDuckGo → Clearbit). Falls back to initials on a
+ * coloured tile. Successful logos are cached as data URLs in localStorage.
  */
 export function BrandLogo({
   brand,
@@ -39,30 +39,39 @@ export function BrandLogo({
   const displayName = brand?.name || name || '';
   const bg = color || resolved?.color || 'hsl(var(--primary))';
   const domain = resolved?.domain;
-  const remoteUrl = brandLogoUrl(domain);
+  const candidates = useMemo(() => brandLogoCandidates(domain), [domain]);
 
-  // Seed from cache synchronously to avoid a network round-trip on mount.
   const cached = getCachedLogo(domain);
   const [src, setSrc] = useState<string | null>(() => {
     if (cached !== undefined) return cached; // hit (data URL or known-missing null)
-    return remoteUrl; // unknown — show remote URL while we cache it
+    return candidates[0] ?? null;
   });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!domain || !remoteUrl) return;
+    if (!domain || candidates.length === 0) return;
     const hit = getCachedLogo(domain);
     if (hit !== undefined) {
       setSrc(hit);
       return;
     }
     let active = true;
-    fetchAndCacheLogo(domain, remoteUrl).then((dataUrl) => {
-      if (active) setSrc(dataUrl ?? remoteUrl);
-    });
+    (async () => {
+      for (const url of candidates) {
+        const dataUrl = await fetchAndCacheLogo(domain, url);
+        if (!active) return;
+        if (dataUrl) {
+          setSrc(dataUrl);
+          return;
+        }
+      }
+      // None of the fetches succeeded — leave src as the first candidate so
+      // the browser can still try loading it directly (CORS-free <img>).
+    })();
     return () => {
       active = false;
     };
-  }, [domain, remoteUrl]);
+  }, [domain, candidates]);
 
   return (
     <div
@@ -75,8 +84,15 @@ export function BrandLogo({
           alt={displayName}
           loading="lazy"
           onError={() => {
-            if (domain) markLogoMissing(domain);
-            setSrc(null);
+            // Try the next candidate URL before giving up.
+            const next = attempt + 1;
+            if (next < candidates.length) {
+              setAttempt(next);
+              setSrc(candidates[next]);
+            } else {
+              if (domain) markLogoMissing(domain);
+              setSrc(null);
+            }
           }}
           className="w-full h-full object-contain bg-white p-1"
         />

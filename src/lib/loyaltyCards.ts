@@ -68,10 +68,25 @@ export const SA_LOYALTY_BRANDS: LoyaltyBrand[] = [
   { id: 'protea-prokard', name: 'Protea Hotels Prokard', color: '#a8915d', category: 'Travel', domain: 'marriott.com' },
 ];
 
-/** Public logo URL for a brand domain via Clearbit's free logo service. */
+/**
+ * Ordered list of public logo URLs for a brand domain. We try each in turn
+ * because no single free service reliably covers every South African brand:
+ *   1. Google's favicon service (high-quality, near-universal coverage)
+ *   2. DuckDuckGo's icon service (often has crisper square logos)
+ *   3. Clearbit (legacy, still works for many global brands)
+ */
+export function brandLogoCandidates(domain?: string | null): string[] {
+  if (!domain) return [];
+  return [
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+    `https://logo.clearbit.com/${domain}`,
+  ];
+}
+
+/** Backwards-compatible single-URL helper — returns the best candidate. */
 export function brandLogoUrl(domain?: string | null): string | null {
-  if (!domain) return null;
-  return `https://logo.clearbit.com/${domain}`;
+  return brandLogoCandidates(domain)[0] ?? null;
 }
 
 /** Look up a brand by exact name match (used when rendering saved cards). */
