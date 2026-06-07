@@ -11,13 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image as ImageIcon, Search, Pencil, Maximize2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image as ImageIcon, Search, Pencil, Maximize2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { BarcodeDisplay } from '@/components/BarcodeDisplay';
 import { BrandPicker } from '@/components/BrandPicker';
 import { FullscreenBarcode } from '@/components/FullscreenBarcode';
 import { BrandLogo } from '@/components/BrandLogo';
+import { PrintableCard } from '@/components/PrintableCard';
 import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, findBrandByName, type LoyaltyBrand } from '@/lib/loyaltyCards';
 
 interface LoyaltyCard {
@@ -55,6 +56,7 @@ const LoyaltyCards = () => {
   // Filters
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [printingCard, setPrintingCard] = useState<LoyaltyCard | null>(null);
 
   // Form state
   const [name, setName] = useState('');
@@ -448,6 +450,11 @@ const LoyaltyCards = () => {
                 <Button variant="outline" onClick={() => openEdit(viewing)}>
                   <Pencil className="w-4 h-4 mr-2" /> Edit
                 </Button>
+                {(viewing.barcode_value || viewing.card_number) && (
+                  <Button variant="outline" onClick={() => setPrintingCard(viewing)}>
+                    <Printer className="w-4 h-4 mr-2" /> Print
+                  </Button>
+                )}
                 {viewing.barcode_value && (
                   <Button onClick={() => setFullscreenCard(viewing)}>
                     <Maximize2 className="w-4 h-4 mr-2" /> Show at till
@@ -492,6 +499,16 @@ const LoyaltyCards = () => {
           format={fullscreenCard.barcode_format}
           cardNumber={fullscreenCard.card_number}
           brandColor={fullscreenCard.brand_color}
+        />
+      )}
+
+      {printingCard && (
+        <PrintableCard
+          name={printingCard.name}
+          cardNumber={printingCard.card_number}
+          barcodeValue={printingCard.barcode_value}
+          barcodeFormat={printingCard.barcode_format}
+          onDone={() => setPrintingCard(null)}
         />
       )}
     </div>
