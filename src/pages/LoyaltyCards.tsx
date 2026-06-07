@@ -11,13 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image as ImageIcon, Search, Pencil, Maximize2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Plus, ScanLine, Camera, Trash2, Loader2, Image as ImageIcon, Search, Pencil, Maximize2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { BarcodeDisplay } from '@/components/BarcodeDisplay';
 import { BrandPicker } from '@/components/BrandPicker';
 import { FullscreenBarcode } from '@/components/FullscreenBarcode';
 import { BrandLogo } from '@/components/BrandLogo';
+import { PrintableCard } from '@/components/PrintableCard';
 import { SA_LOYALTY_BRANDS, detectBrandFromBarcode, findBrandByName, type LoyaltyBrand } from '@/lib/loyaltyCards';
 
 interface LoyaltyCard {
