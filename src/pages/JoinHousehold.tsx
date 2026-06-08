@@ -18,12 +18,11 @@ const JoinHousehold = () => {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // If user is already logged in, redirect to home
-  useEffect(() => {
-    if (!authLoading && user) {
-      navigate('/');
-    }
-  }, [user, authLoading, navigate]);
+  // Note: we intentionally do NOT auto-redirect logged-in users away from
+  // this page. People often scan the QR while already signed in — they still
+  // need to enter the PIN here. Joining will replace their current session
+  // with the new guest account that the edge function provisions.
+
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +34,18 @@ const JoinHousehold = () => {
 
     setJoining(true);
     setError(null);
+
+    // If someone is already signed in (e.g. they scanned the QR from inside
+    // the app), sign them out first so setSession can install the new guest
+    // session cleanly without colliding with the existing one.
+    if (user) {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('Sign-out before join failed (continuing):', err);
+      }
+    }
+
 
     try {
       const response = await supabase.functions.invoke('join-household', {
@@ -107,7 +118,13 @@ const JoinHousehold = () => {
           <CardDescription>
             Enter the PIN code shared with you to join the household
           </CardDescription>
+          {user && (
+            <p className="text-xs text-muted-foreground mt-2">
+              You're currently signed in. Joining will switch you to the invited household.
+            </p>
+          )}
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleJoin} className="space-y-4">
             <div className="space-y-2">
