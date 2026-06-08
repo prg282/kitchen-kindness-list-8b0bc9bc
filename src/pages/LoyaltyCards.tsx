@@ -350,12 +350,6 @@ const LoyaltyCards = () => {
               </div>
               {photoFile && <p className="text-xs text-muted-foreground">{photoFile.name}</p>}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="card-color">Brand colour</Label>
-                <Input id="card-color" type="color" value={brandColor} onChange={(e) => setBrandColor(e.target.value)} className="h-10 p-1" />
-              </div>
-            </div>
             <div className="space-y-1">
               <Label htmlFor="card-notes">Notes</Label>
               <Textarea id="card-notes" value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={500} rows={2} />
