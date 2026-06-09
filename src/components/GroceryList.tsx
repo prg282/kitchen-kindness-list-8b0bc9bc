@@ -1,9 +1,11 @@
-import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Loader2, Home, CreditCard } from 'lucide-react';
+import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Home, CreditCard } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GroceryInput } from './GroceryInput';
 import { CategorySection } from './CategorySection';
 import { GroceryItemComponent } from './GroceryItem';
+import { GroceryListSkeleton } from './GroceryListSkeleton';
+import { SyncStatus } from './SyncStatus';
 import { CategoryType, categories, GroceryItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
 import { useAuth } from '@/hooks/useAuth';
