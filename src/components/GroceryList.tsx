@@ -235,12 +235,15 @@ export function GroceryList() {
             </div>
           </div>
 
-          {profile && (
-            <div className="flex items-center gap-1.5 mb-3 text-xs text-muted-foreground">
-              <Users className="w-3.5 h-3.5" />
-              <span>{t('app.signedInAs')} {profile.display_name || profile.email}</span>
-            </div>
-          )}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            {profile ? (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+                <Users className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">{t('app.signedInAs')} {profile.display_name || profile.email}</span>
+              </div>
+            ) : <span />}
+            <SyncStatus />
+          </div>
 
           {totalItems > 0 && (
             <div className="mb-3 md:mb-4">
