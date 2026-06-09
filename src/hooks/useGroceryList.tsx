@@ -3,6 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groceryCategories';
 import { toast } from 'sonner';
+import { pingSync, pongSync } from '@/components/SyncStatus';
+
+async function withSync<T>(p: PromiseLike<T>): Promise<T> {
+  pingSync();
+  try {
+    return await Promise.resolve(p as Promise<T>);
+  } finally {
+    pongSync();
+  }
+}
 
 export function useGroceryList() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -285,10 +295,10 @@ export function useGroceryList() {
       i.id === id ? { ...i, checked: !i.checked } : i
     ));
 
-    const { error } = await supabase
+    const { error } = await withSync(supabase
       .from('grocery_items')
       .update({ checked: !item.checked })
-      .eq('id', id);
+      .eq('id', id));
 
     if (error) {
       console.error('Error toggling item:', error);
@@ -307,10 +317,10 @@ export function useGroceryList() {
     // Optimistic update
     setItems(prev => prev.filter(i => i.id !== id));
 
-    const { error } = await supabase
+    const { error } = await withSync(supabase
       .from('grocery_items')
       .delete()
-      .eq('id', id);
+      .eq('id', id));
 
     if (error) {
       console.error('Error deleting item:', error);
@@ -331,10 +341,10 @@ export function useGroceryList() {
       i.id === id ? { ...i, name: newName, category: newCategory, quantity: newQuantity } : i
     ));
 
-    const { error } = await supabase
+    const { error } = await withSync(supabase
       .from('grocery_items')
       .update({ name: newName, category: newCategory, quantity: newQuantity || null })
-      .eq('id', id);
+      .eq('id', id));
 
     if (error) {
       console.error('Error editing item:', error);
@@ -358,10 +368,10 @@ export function useGroceryList() {
     const checkedItems = items.filter(i => i.checked);
     setItems(prev => prev.filter(i => !i.checked));
 
-    const { error } = await supabase
+    const { error } = await withSync(supabase
       .from('grocery_items')
       .delete()
-      .in('id', checkedIds);
+      .in('id', checkedIds));
 
     if (error) {
       console.error('Error clearing checked items:', error);
@@ -427,6 +437,7 @@ export function useGroceryList() {
     });
 
     // Persist to DB
+    pingSync();
     const promises = updates.map((item, index) =>
       supabase
         .from('grocery_items')
@@ -435,6 +446,7 @@ export function useGroceryList() {
     );
 
     const results = await Promise.all(promises);
+    pongSync();
     const hasError = results.some(r => r.error);
     if (hasError) {
       console.error('Error reordering items');
@@ -462,10 +474,10 @@ export function useGroceryList() {
     // Optimistic
     setItems(prev => prev.map(i => i.id === itemId ? { ...i, category: newCategory as any } : i));
 
-    const { error } = await supabase
+    const { error } = await withSync(supabase
       .from('grocery_items')
       .update({ category: newCategory } as any)
-      .eq('id', itemId);
+      .eq('id', itemId));
 
     if (error) {
       console.error('Error moving item to category:', error);

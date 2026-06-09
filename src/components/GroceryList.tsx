@@ -1,9 +1,11 @@
-import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Loader2, Home, CreditCard } from 'lucide-react';
+import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Home, CreditCard } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GroceryInput } from './GroceryInput';
 import { CategorySection } from './CategorySection';
 import { GroceryItemComponent } from './GroceryItem';
+import { GroceryListSkeleton } from './GroceryListSkeleton';
+import { SyncStatus } from './SyncStatus';
 import { CategoryType, categories, GroceryItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
 import { useAuth } from '@/hooks/useAuth';
@@ -152,11 +154,23 @@ export function GroceryList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 md:w-10 md:h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-sm md:text-base text-muted-foreground">{t('loading.groceryList')}</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-10 bg-background/75 backdrop-blur-xl border-b border-border/40">
+          <div className="container py-4 md:py-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-primary/10 ring-1 ring-primary/10">
+                <ShoppingBasket className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-display tracking-tight">{t('app.title')}</h1>
+                <p className="text-xs text-muted-foreground">{t('loading.groceryList')}</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <main className="container py-4 md:py-6">
+          <GroceryListSkeleton />
+        </main>
       </div>
     );
   }
@@ -221,12 +235,15 @@ export function GroceryList() {
             </div>
           </div>
 
-          {profile && (
-            <div className="flex items-center gap-1.5 mb-3 text-xs text-muted-foreground">
-              <Users className="w-3.5 h-3.5" />
-              <span>{t('app.signedInAs')} {profile.display_name || profile.email}</span>
-            </div>
-          )}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            {profile ? (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground min-w-0">
+                <Users className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">{t('app.signedInAs')} {profile.display_name || profile.email}</span>
+              </div>
+            ) : <span />}
+            <SyncStatus />
+          </div>
 
           {totalItems > 0 && (
             <div className="mb-3 md:mb-4">
