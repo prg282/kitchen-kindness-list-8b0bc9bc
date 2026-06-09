@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 import { GroceryItemComponent } from './GroceryItem';
 import { GroceryItem } from '@/lib/groceryCategories';
+import { cn } from '@/lib/utils';
 
 interface SortableGroceryItemProps {
   item: GroceryItem;
@@ -21,19 +22,25 @@ export function SortableGroceryItem({ item, onToggle, onDelete, onEdit }: Sortab
     isDragging,
   } = useSortable({ id: item.id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 10 : undefined,
+    transition: transition ?? 'transform 200ms cubic-bezier(0.2, 0, 0, 1)',
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-1">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'flex items-center gap-1 rounded-xl',
+        isDragging && 'opacity-30',
+      )}
+    >
       <button
         className="touch-none p-1 rounded text-muted-foreground/40 hover:text-muted-foreground cursor-grab active:cursor-grabbing flex-shrink-0"
         {...attributes}
         {...listeners}
+        aria-label="Drag to reorder"
       >
         <GripVertical className="w-4 h-4" />
       </button>
