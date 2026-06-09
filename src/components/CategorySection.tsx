@@ -30,22 +30,22 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit }:
   const { setNodeRef, isOver } = useDroppable({ id: droppableId, data: { category } });
 
   return (
-    <div className={cn('rounded-xl overflow-hidden animate-fade-in-up', `category-${category}`)}>
+    <div className={cn('rounded-2xl overflow-hidden animate-fade-in-up', `category-${category}`)}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-3 md:p-4 bg-card border border-border/50 rounded-xl shadow-soft hover:shadow-medium transition-all duration-200"
+        className="w-full flex items-center justify-between p-3 md:p-4 bg-card border border-border/40 rounded-2xl shadow-soft hover:shadow-medium transition-all duration-200"
       >
         <div className="flex items-center gap-2 md:gap-3">
           <span className="text-xl md:text-2xl">{categoryInfo.icon}</span>
-          <h3 className="font-semibold text-base md:text-lg text-foreground">{translatedName}</h3>
-          <div className="flex items-center gap-1.5 md:gap-2 ml-1 md:ml-2">
+          <h3 className="font-semibold text-base md:text-lg text-foreground tracking-tight">{translatedName}</h3>
+          <div className="flex items-center gap-1.5 ml-1">
             {uncheckedCount > 0 && (
-              <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-primary/10 text-primary">
+              <span className="px-2 py-0.5 rounded-full text-[10px] md:text-xs font-semibold bg-primary/10 text-primary">
                 {uncheckedCount}
               </span>
             )}
             {checkedCount > 0 && (
-              <span className="px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-muted text-muted-foreground">
+              <span className="px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-muted text-muted-foreground">
                 {checkedCount} {t('category.done')}
               </span>
             )}
@@ -64,12 +64,12 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit }:
           <div
             ref={setNodeRef}
             className={cn(
-              'mt-2 space-y-2 pl-1 min-h-[3rem] rounded-lg transition-colors',
-              isOver && 'bg-primary/5 ring-2 ring-primary/30',
+              'mt-2 space-y-2 pl-1 min-h-[3.25rem] rounded-2xl transition-all duration-200',
+              isOver && 'bg-primary/5 ring-2 ring-primary/30 ring-offset-2 ring-offset-background',
             )}
           >
             {items.length === 0 && (
-              <p className="text-xs text-muted-foreground italic px-2 py-3">
+              <p className="text-xs text-muted-foreground/70 italic px-3 py-4 border border-dashed border-border/60 rounded-xl text-center">
                 Drop items here
               </p>
             )}
