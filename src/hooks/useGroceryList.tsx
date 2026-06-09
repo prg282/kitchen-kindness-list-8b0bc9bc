@@ -3,6 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groceryCategories';
 import { toast } from 'sonner';
+import { pingSync, pongSync } from '@/components/SyncStatus';
+
+async function withSync<T>(p: Promise<T>): Promise<T> {
+  pingSync();
+  try {
+    return await p;
+  } finally {
+    pongSync();
+  }
+}
 
 export function useGroceryList() {
   const { user, profile, loading: authLoading } = useAuth();
