@@ -295,10 +295,10 @@ export function useGroceryList() {
       i.id === id ? { ...i, checked: !i.checked } : i
     ));
 
-    const { error } = await supabase
+    const { error } = await withSync(supabase
       .from('grocery_items')
       .update({ checked: !item.checked })
-      .eq('id', id);
+      .eq('id', id));
 
     if (error) {
       console.error('Error toggling item:', error);
@@ -317,10 +317,10 @@ export function useGroceryList() {
     // Optimistic update
     setItems(prev => prev.filter(i => i.id !== id));
 
-    const { error } = await supabase
+    const { error } = await withSync(supabase
       .from('grocery_items')
       .delete()
-      .eq('id', id);
+      .eq('id', id));
 
     if (error) {
       console.error('Error deleting item:', error);
