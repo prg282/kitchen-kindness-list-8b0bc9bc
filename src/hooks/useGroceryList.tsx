@@ -5,10 +5,10 @@ import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groc
 import { toast } from 'sonner';
 import { pingSync, pongSync } from '@/components/SyncStatus';
 
-async function withSync<T>(p: Promise<T>): Promise<T> {
+async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   pingSync();
   try {
-    return await p;
+    return await Promise.resolve(p as Promise<T>);
   } finally {
     pongSync();
   }
