@@ -154,11 +154,23 @@ export function GroceryList() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 md:w-10 md:h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-sm md:text-base text-muted-foreground">{t('loading.groceryList')}</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-10 bg-background/75 backdrop-blur-xl border-b border-border/40">
+          <div className="container py-4 md:py-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-primary/10 ring-1 ring-primary/10">
+                <ShoppingBasket className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-display tracking-tight">{t('app.title')}</h1>
+                <p className="text-xs text-muted-foreground">{t('loading.groceryList')}</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <main className="container py-4 md:py-6">
+          <GroceryListSkeleton />
+        </main>
       </div>
     );
   }
