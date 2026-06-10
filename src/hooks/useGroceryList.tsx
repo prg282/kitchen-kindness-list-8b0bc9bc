@@ -8,9 +8,13 @@ import { pingSync, pongSync } from '@/components/SyncStatus';
 async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   pingSync();
   try {
-    return await Promise.resolve(p as Promise<T>);
-  } finally {
-    pongSync();
+    const result = await Promise.resolve(p as Promise<T>);
+    const err = (result as any)?.error;
+    pongSync(err ? { error: err.message || err } : undefined);
+    return result;
+  } catch (error) {
+    pongSync({ error });
+    throw error;
   }
 }
 
