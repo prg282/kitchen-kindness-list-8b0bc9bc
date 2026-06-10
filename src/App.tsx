@@ -11,6 +11,7 @@ import Household from "./pages/Household";
 import JoinHousehold from "./pages/JoinHousehold";
 import LoyaltyCards from "./pages/LoyaltyCards";
 import NotFound from "./pages/NotFound";
+import { DebugPanel } from "@/components/DebugPanel";
 
 // Create a stable query client instance
 const queryClient = new QueryClient();
