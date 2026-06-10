@@ -33,6 +33,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          <DebugPanel />
         </LanguageProvider>
       </AuthProvider>
     </TooltipProvider>
