@@ -4,17 +4,46 @@ import { cn } from '@/lib/utils';
 
 type SyncState = 'online' | 'offline' | 'syncing' | 'synced';
 
-const syncBus = new EventTarget();
-let activeSyncs = 0;
+export const syncBus = new EventTarget();
 
-export function pingSync() {
-  activeSyncs += 1;
-  syncBus.dispatchEvent(new CustomEvent('sync', { detail: { active: activeSyncs } }));
+export const syncState = {
+  active: 0,
+  queued: 0,
+  lastSyncAt: null as number | null,
+  lastError: null as string | null,
+  lastErrorAt: null as number | null,
+};
+
+function emit() {
+  syncBus.dispatchEvent(new CustomEvent('sync', { detail: { ...syncState } }));
 }
 
-export function pongSync() {
-  activeSyncs = Math.max(0, activeSyncs - 1);
-  syncBus.dispatchEvent(new CustomEvent('sync', { detail: { active: activeSyncs } }));
+export function pingSync() {
+  syncState.active += 1;
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    syncState.queued += 1;
+  }
+  emit();
+}
+
+export function pongSync(opts?: { error?: unknown }) {
+  syncState.active = Math.max(0, syncState.active - 1);
+  if (opts?.error) {
+    const msg = opts.error instanceof Error ? opts.error.message : String(opts.error);
+    syncState.lastError = msg;
+    syncState.lastErrorAt = Date.now();
+  } else {
+    syncState.lastSyncAt = Date.now();
+    if (typeof navigator !== 'undefined' && navigator.onLine && syncState.queued > 0) {
+      syncState.queued = Math.max(0, syncState.queued - 1);
+    }
+  }
+  emit();
+}
+
+export function resetQueueCount() {
+  syncState.queued = 0;
+  emit();
 }
 
 export function SyncStatus() {
@@ -34,6 +63,7 @@ export function SyncStatus() {
   }, []);
 
   useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | null = null;
     const onSync = (e: Event) => {
       const detail = (e as CustomEvent).detail as { active: number };
       if (detail.active > 0) {
@@ -41,12 +71,15 @@ export function SyncStatus() {
       } else {
         setState('synced');
         setJustSynced(true);
-        const t = setTimeout(() => setJustSynced(false), 1600);
-        return () => clearTimeout(t);
+        if (t) clearTimeout(t);
+        t = setTimeout(() => setJustSynced(false), 1600);
       }
     };
     syncBus.addEventListener('sync', onSync);
-    return () => syncBus.removeEventListener('sync', onSync);
+    return () => {
+      syncBus.removeEventListener('sync', onSync);
+      if (t) clearTimeout(t);
+    };
   }, []);
 
   const effective: SyncState = !online ? 'offline' : state === 'syncing' ? 'syncing' : justSynced ? 'synced' : 'online';
