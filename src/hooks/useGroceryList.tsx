@@ -106,6 +106,18 @@ export function useGroceryList() {
     });
   }, [authLoading, user, householdId, fetchItems, fetchKnownItems]);
 
+  // When the browser comes back online, refetch so any queued writes that just
+  // replayed are reflected and the UI converges with the server.
+  useEffect(() => {
+    if (!householdId) return;
+    const onOnline = () => {
+      pingSync();
+      Promise.all([fetchItems(), fetchKnownItems()]).finally(() => pongSync());
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [householdId, fetchItems, fetchKnownItems]);
+
   // Subscribe to realtime updates
   useEffect(() => {
     if (!householdId) return;
