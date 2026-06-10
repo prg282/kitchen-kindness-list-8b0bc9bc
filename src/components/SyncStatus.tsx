@@ -52,10 +52,10 @@ export function SyncStatus() {
   const effective: SyncState = !online ? 'offline' : state === 'syncing' ? 'syncing' : justSynced ? 'synced' : 'online';
 
   const config = {
-    online: { label: 'Online', Icon: Wifi, cls: 'text-muted-foreground bg-muted/60' },
-    offline: { label: 'Offline', Icon: WifiOff, cls: 'text-[hsl(var(--warning))] bg-[hsl(var(--warning))]/15 ring-1 ring-[hsl(var(--warning))]/30' },
-    syncing: { label: 'Syncing…', Icon: RefreshCw, cls: 'text-primary bg-primary/10 ring-1 ring-primary/20' },
-    synced: { label: 'Saved', Icon: Check, cls: 'text-[hsl(var(--success))] bg-[hsl(var(--success))]/10 ring-1 ring-[hsl(var(--success))]/25' },
+    online: { label: 'Online', Icon: Wifi, cls: 'text-muted-foreground bg-muted/60', dot: 'bg-[hsl(var(--success))]', pulse: false },
+    offline: { label: 'Offline', Icon: WifiOff, cls: 'text-[hsl(var(--destructive))] bg-[hsl(var(--destructive))]/10 ring-1 ring-[hsl(var(--destructive))]/30', dot: 'bg-[hsl(var(--destructive))]', pulse: false },
+    syncing: { label: 'Syncing…', Icon: RefreshCw, cls: 'text-[hsl(var(--warning))] bg-[hsl(var(--warning))]/10 ring-1 ring-[hsl(var(--warning))]/25', dot: 'bg-[hsl(var(--warning))]', pulse: true },
+    synced: { label: 'Saved', Icon: Check, cls: 'text-[hsl(var(--success))] bg-[hsl(var(--success))]/10 ring-1 ring-[hsl(var(--success))]/25', dot: 'bg-[hsl(var(--success))]', pulse: false },
   }[effective];
 
   const { Icon } = config;
