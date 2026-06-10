@@ -64,6 +64,49 @@ export default defineConfig(({ mode }) => ({
             options: { cacheName: "google-fonts" },
           },
           {
+            // Supabase writes (POST/PATCH/DELETE) — queue offline and replay when back online
+            urlPattern: ({ url, request }) =>
+              url.hostname.endsWith(".supabase.co") &&
+              url.pathname.startsWith("/rest/") &&
+              request.method !== "GET",
+            handler: "NetworkOnly",
+            method: "POST",
+            options: {
+              backgroundSync: {
+                name: "supabase-write-queue",
+                options: { maxRetentionTime: 24 * 60 }, // retry for 24h
+              },
+            },
+          },
+          {
+            urlPattern: ({ url, request }) =>
+              url.hostname.endsWith(".supabase.co") &&
+              url.pathname.startsWith("/rest/") &&
+              request.method !== "GET",
+            handler: "NetworkOnly",
+            method: "PATCH",
+            options: {
+              backgroundSync: {
+                name: "supabase-write-queue",
+                options: { maxRetentionTime: 24 * 60 },
+              },
+            },
+          },
+          {
+            urlPattern: ({ url, request }) =>
+              url.hostname.endsWith(".supabase.co") &&
+              url.pathname.startsWith("/rest/") &&
+              request.method !== "GET",
+            handler: "NetworkOnly",
+            method: "DELETE",
+            options: {
+              backgroundSync: {
+                name: "supabase-write-queue",
+                options: { maxRetentionTime: 24 * 60 },
+              },
+            },
+          },
+          {
             urlPattern: ({ url }) =>
               url.hostname.endsWith(".supabase.co") && url.pathname.startsWith("/rest/"),
             handler: "NetworkFirst",
