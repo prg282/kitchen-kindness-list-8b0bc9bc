@@ -109,13 +109,15 @@ export function useGroceryList() {
   // When the browser comes back online, refetch so any queued writes that just
   // replayed are reflected and the UI converges with the server.
   useEffect(() => {
-    if (!householdId) return;
     const onOnline = () => {
+      if (!householdId) return;
       pingSync();
       Promise.all([fetchItems(), fetchKnownItems()]).finally(() => pongSync());
     };
     window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+    };
   }, [householdId, fetchItems, fetchKnownItems]);
 
   // Subscribe to realtime updates
