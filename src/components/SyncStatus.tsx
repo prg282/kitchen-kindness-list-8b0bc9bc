@@ -70,6 +70,7 @@ export function SyncStatus() {
       )}
       title={config.label}
     >
+      <span className={cn('w-2 h-2 rounded-full', config.dot, config.pulse && 'animate-pulse')} />
       <Icon className={cn('w-3 h-3 md:w-3.5 md:h-3.5', effective === 'syncing' && 'animate-spin')} />
       <span>{config.label}</span>
     </div>
