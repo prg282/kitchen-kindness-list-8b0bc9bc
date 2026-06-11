@@ -301,6 +301,8 @@ const Household = () => {
                 {members.map((m) => {
                   const name = m.display_name || m.email?.split('@')[0] || 'Member';
                   const initial = name.charAt(0).toUpperCase();
+                  const memberIsOwner = m.id === currentHousehold?.owner_id;
+                  const canRemove = isOwner && !memberIsOwner && m.id !== user.id;
                   return (
                     <div
                       key={m.id}
@@ -310,16 +312,57 @@ const Household = () => {
                         {initial}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">
-                          {name}
+                        <p className="font-medium text-foreground truncate flex items-center gap-2">
+                          <span className="truncate">{name}</span>
+                          {memberIsOwner && (
+                            <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                              <Crown className="w-3 h-3" /> Owner
+                            </span>
+                          )}
                           {m.id === user.id && (
-                            <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                            <span className="text-xs text-muted-foreground">(you)</span>
                           )}
                         </p>
                         {m.email && (
                           <p className="text-sm text-muted-foreground truncate">{m.email}</p>
                         )}
                       </div>
+                      {canRemove && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={removing === m.id}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              aria-label={`Remove ${name}`}
+                            >
+                              {removing === m.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <UserMinus className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove {name}?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                They'll be moved to a new empty household and will lose access to this household's grocery list and loyalty cards.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleRemoveMember(m.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   );
                 })}
