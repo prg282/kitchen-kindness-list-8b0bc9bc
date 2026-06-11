@@ -6,10 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Home, ArrowLeft, Plus, Check, Users } from 'lucide-react';
+import { Loader2, Home, ArrowLeft, Plus, Check, Users, UserMinus, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import InviteShare from '@/components/InviteShare';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const householdSchema = z.object({
   name: z.string().trim().min(1, 'Household name is required').max(100, 'Name must be less than 100 characters'),
@@ -19,6 +30,7 @@ interface Household {
   id: string;
   name: string;
   created_at: string;
+  owner_id: string | null;
 }
 
 interface Member {
