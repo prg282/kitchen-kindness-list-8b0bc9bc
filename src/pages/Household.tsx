@@ -48,6 +48,7 @@ const Household = () => {
   useEffect(() => {
     if (user && profile?.household_id) {
       fetchCurrentHousehold();
+      fetchMembers();
     } else if (user) {
       setLoading(false);
     }
@@ -71,6 +72,19 @@ const Household = () => {
       setHouseholds([data]);
     }
     setLoading(false);
+  };
+
+  const fetchMembers = async () => {
+    if (!profile?.household_id) return;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name, email')
+      .eq('household_id', profile.household_id);
+    if (error) {
+      console.error('Error fetching members:', error);
+      return;
+    }
+    setMembers(data || []);
   };
 
   const handleCreateHousehold = async (e: React.FormEvent) => {
