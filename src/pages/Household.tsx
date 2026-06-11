@@ -174,6 +174,41 @@ const Household = () => {
     }
   };
 
+  const handleRemoveMember = async (memberId: string) => {
+    if (!currentHousehold || !isOwner) return;
+    if (memberId === currentHousehold.owner_id) {
+      toast.error("You can't remove the household owner");
+      return;
+    }
+    setRemoving(memberId);
+    try {
+      // Create a fresh household for the removed member, owned by them
+      const { data: newHh, error: hhErr } = await supabase
+        .from('households')
+        .insert({ name: 'My Household', owner_id: memberId })
+        .select()
+        .single();
+      if (hhErr) throw hhErr;
+
+      // Reassign their profile to the new household
+      const { error: updErr } = await supabase
+        .from('profiles')
+        .update({ household_id: newHh.id })
+        .eq('id', memberId);
+      if (updErr) throw updErr;
+
+      toast.success('Member removed');
+      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+    } catch (err: any) {
+      console.error('Error removing member:', err);
+      toast.error(err.message || 'Failed to remove member');
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
