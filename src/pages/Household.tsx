@@ -6,10 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Home, ArrowLeft, Plus, Check, Users } from 'lucide-react';
+import { Loader2, Home, ArrowLeft, Plus, Check, Users, UserMinus, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import InviteShare from '@/components/InviteShare';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const householdSchema = z.object({
   name: z.string().trim().min(1, 'Household name is required').max(100, 'Name must be less than 100 characters'),
@@ -19,6 +30,7 @@ interface Household {
   id: string;
   name: string;
   created_at: string;
+  owner_id: string | null;
 }
 
 interface Member {
@@ -38,6 +50,10 @@ const Household = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newHouseholdName, setNewHouseholdName] = useState('');
   const [error, setError] = useState('');
+  const [removing, setRemoving] = useState<string | null>(null);
+
+  const currentHousehold = households[0];
+  const isOwner = !!currentHousehold && currentHousehold.owner_id === user?.id;
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -107,7 +123,7 @@ const Household = () => {
       // Create new household
       const { data: newHousehold, error: createError } = await supabase
         .from('households')
-        .insert({ name: validation.data.name })
+        .insert({ name: validation.data.name, owner_id: user!.id })
         .select()
         .single();
 
@@ -157,6 +173,41 @@ const Household = () => {
       setSwitching(null);
     }
   };
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!currentHousehold || !isOwner) return;
+    if (memberId === currentHousehold.owner_id) {
+      toast.error("You can't remove the household owner");
+      return;
+    }
+    setRemoving(memberId);
+    try {
+      // Create a fresh household for the removed member, owned by them
+      const { data: newHh, error: hhErr } = await supabase
+        .from('households')
+        .insert({ name: 'My Household', owner_id: memberId })
+        .select()
+        .single();
+      if (hhErr) throw hhErr;
+
+      // Reassign their profile to the new household
+      const { error: updErr } = await supabase
+        .from('profiles')
+        .update({ household_id: newHh.id })
+        .eq('id', memberId);
+      if (updErr) throw updErr;
+
+      toast.success('Member removed');
+      setMembers((prev) => prev.filter((m) => m.id !== memberId));
+    } catch (err: any) {
+      console.error('Error removing member:', err);
+      toast.error(err.message || 'Failed to remove member');
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+
 
   if (authLoading || loading) {
     return (
@@ -250,6 +301,8 @@ const Household = () => {
                 {members.map((m) => {
                   const name = m.display_name || m.email?.split('@')[0] || 'Member';
                   const initial = name.charAt(0).toUpperCase();
+                  const memberIsOwner = m.id === currentHousehold?.owner_id;
+                  const canRemove = isOwner && !memberIsOwner && m.id !== user.id;
                   return (
                     <div
                       key={m.id}
@@ -259,16 +312,57 @@ const Household = () => {
                         {initial}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">
-                          {name}
+                        <p className="font-medium text-foreground truncate flex items-center gap-2">
+                          <span className="truncate">{name}</span>
+                          {memberIsOwner && (
+                            <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                              <Crown className="w-3 h-3" /> Owner
+                            </span>
+                          )}
                           {m.id === user.id && (
-                            <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                            <span className="text-xs text-muted-foreground">(you)</span>
                           )}
                         </p>
                         {m.email && (
                           <p className="text-sm text-muted-foreground truncate">{m.email}</p>
                         )}
                       </div>
+                      {canRemove && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={removing === m.id}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              aria-label={`Remove ${name}`}
+                            >
+                              {removing === m.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <UserMinus className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove {name}?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                They'll be moved to a new empty household and will lose access to this household's grocery list and loyalty cards.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleRemoveMember(m.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                     </div>
                   );
                 })}
