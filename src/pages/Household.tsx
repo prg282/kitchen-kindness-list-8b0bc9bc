@@ -31,6 +31,7 @@ const Household = () => {
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [households, setHouseholds] = useState<Household[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [switching, setSwitching] = useState<string | null>(null);
