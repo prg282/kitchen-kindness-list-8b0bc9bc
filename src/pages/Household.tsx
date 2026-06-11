@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Home, ArrowLeft, Plus, Check } from 'lucide-react';
+import { Loader2, Home, ArrowLeft, Plus, Check, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import InviteShare from '@/components/InviteShare';
@@ -21,10 +21,17 @@ interface Household {
   created_at: string;
 }
 
+interface Member {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+}
+
 const Household = () => {
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [households, setHouseholds] = useState<Household[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [switching, setSwitching] = useState<string | null>(null);
@@ -41,6 +48,7 @@ const Household = () => {
   useEffect(() => {
     if (user && profile?.household_id) {
       fetchCurrentHousehold();
+      fetchMembers();
     } else if (user) {
       setLoading(false);
     }
@@ -64,6 +72,19 @@ const Household = () => {
       setHouseholds([data]);
     }
     setLoading(false);
+  };
+
+  const fetchMembers = async () => {
+    if (!profile?.household_id) return;
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name, email')
+      .eq('household_id', profile.household_id);
+    if (error) {
+      console.error('Error fetching members:', error);
+      return;
+    }
+    setMembers(data || []);
   };
 
   const handleCreateHousehold = async (e: React.FormEvent) => {
@@ -211,6 +232,52 @@ const Household = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Members */}
+        {profile?.household_id && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Members ({members.length})
+              </CardTitle>
+              <CardDescription>
+                People who share this household's grocery list
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {members.map((m) => {
+                  const name = m.display_name || m.email?.split('@')[0] || 'Member';
+                  const initial = name.charAt(0).toUpperCase();
+                  return (
+                    <div
+                      key={m.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-card"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium">
+                        {initial}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">
+                          {name}
+                          {m.id === user.id && (
+                            <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                          )}
+                        </p>
+                        {m.email && (
+                          <p className="text-sm text-muted-foreground truncate">{m.email}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+
 
         {/* Invite Members */}
         {profile?.household_id && households.length > 0 && (

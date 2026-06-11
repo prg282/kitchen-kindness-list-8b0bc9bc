@@ -304,6 +304,7 @@ export type Database = {
     }
     Functions: {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      get_user_household: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
