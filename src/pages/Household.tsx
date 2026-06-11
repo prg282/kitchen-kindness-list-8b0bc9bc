@@ -123,7 +123,7 @@ const Household = () => {
       // Create new household
       const { data: newHousehold, error: createError } = await supabase
         .from('households')
-        .insert({ name: validation.data.name })
+        .insert({ name: validation.data.name, owner_id: user!.id })
         .select()
         .single();
 
