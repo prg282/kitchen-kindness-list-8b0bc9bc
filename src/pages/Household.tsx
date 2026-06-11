@@ -182,18 +182,10 @@ const Household = () => {
     }
     setRemoving(memberId);
     try {
-      // Create a fresh household for the removed member, owned by them
-      const { data: newHh, error: hhErr } = await supabase
-        .from('households')
-        .insert({ name: 'My Household', owner_id: memberId })
-        .select()
-        .single();
-      if (hhErr) throw hhErr;
-
-      // Reassign their profile to the new household
+      // Detach the member from the household (their profile remains, household_id becomes null)
       const { error: updErr } = await supabase
         .from('profiles')
-        .update({ household_id: newHh.id })
+        .update({ household_id: null })
         .eq('id', memberId);
       if (updErr) throw updErr;
 
