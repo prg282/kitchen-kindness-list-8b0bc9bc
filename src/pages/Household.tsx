@@ -233,6 +233,52 @@ const Household = () => {
           </Card>
         )}
 
+        {/* Members */}
+        {profile?.household_id && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Members ({members.length})
+              </CardTitle>
+              <CardDescription>
+                People who share this household's grocery list
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {members.map((m) => {
+                  const name = m.display_name || m.email?.split('@')[0] || 'Member';
+                  const initial = name.charAt(0).toUpperCase();
+                  return (
+                    <div
+                      key={m.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-card"
+                    >
+                      <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium">
+                        {initial}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">
+                          {name}
+                          {m.id === user.id && (
+                            <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                          )}
+                        </p>
+                        {m.email && (
+                          <p className="text-sm text-muted-foreground truncate">{m.email}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+
+
         {/* Invite Members */}
         {profile?.household_id && households.length > 0 && (
           <InviteShare
