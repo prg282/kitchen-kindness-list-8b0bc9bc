@@ -50,6 +50,10 @@ const Household = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newHouseholdName, setNewHouseholdName] = useState('');
   const [error, setError] = useState('');
+  const [removing, setRemoving] = useState<string | null>(null);
+
+  const currentHousehold = households[0];
+  const isOwner = !!currentHousehold && currentHousehold.owner_id === user?.id;
 
   useEffect(() => {
     if (!authLoading && !user) {
