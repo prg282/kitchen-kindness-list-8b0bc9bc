@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Home, ArrowLeft, Plus, Check } from 'lucide-react';
+import { Loader2, Home, ArrowLeft, Plus, Check, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import InviteShare from '@/components/InviteShare';
@@ -19,6 +19,12 @@ interface Household {
   id: string;
   name: string;
   created_at: string;
+}
+
+interface Member {
+  id: string;
+  display_name: string | null;
+  email: string | null;
 }
 
 const Household = () => {
