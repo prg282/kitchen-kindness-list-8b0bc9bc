@@ -312,6 +312,10 @@ export type Database = {
         Args: { _household_id: string; _user_id: string }
         Returns: boolean
       }
+      remove_household_member: {
+        Args: { _member_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
