@@ -182,11 +182,9 @@ const Household = () => {
     }
     setRemoving(memberId);
     try {
-      // Detach the member from the household (their profile remains, household_id becomes null)
-      const { error: updErr } = await supabase
-        .from('profiles')
-        .update({ household_id: null })
-        .eq('id', memberId);
+      const { error: updErr } = await supabase.rpc('remove_household_member', {
+        _member_id: memberId,
+      });
       if (updErr) throw updErr;
 
       toast.success('Member removed');
