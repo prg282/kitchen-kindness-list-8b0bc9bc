@@ -98,10 +98,8 @@ const JoinHousehold = () => {
     );
   }
 
-  // Don't show anything if user is already logged in (will redirect)
-  if (user) {
-    return null;
-  }
+  // Note: we intentionally render the form even for logged-in users so they
+  // can enter the PIN. handleJoin signs them out first before joining.
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

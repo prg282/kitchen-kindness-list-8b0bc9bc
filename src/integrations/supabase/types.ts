@@ -306,6 +306,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_assign_household: {
+        Args: { p_household_id: string; p_user_id: string }
+        Returns: undefined
+      }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       get_user_household: { Args: { _user_id: string }; Returns: string }
       is_household_owner: {
