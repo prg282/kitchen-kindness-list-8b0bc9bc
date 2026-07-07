@@ -1,9 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from 'npm:@supabase/supabase-js@2'
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 
 // Rate limiting constants
 const MAX_REQUESTS_PER_HOUR = 5;
@@ -13,7 +9,7 @@ const RATE_LIMIT_WINDOW_HOURS = 1;
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
@@ -39,9 +35,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const body = await req.json();
-    const inviteCode = typeof body.inviteCode === 'string' ? body.inviteCode.trim() : '';
-    const pin = typeof body.pin === 'string' ? body.pin.trim() : '';
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== 'object') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const inviteCode = typeof body.inviteCode === 'string' ? body.inviteCode.trim().toLowerCase() : '';
+    const pin = typeof body.pin === 'string' ? body.pin.replace(/[\s-]/g, '').trim().toLowerCase() : '';
     const displayName = typeof body.displayName === 'string' ? body.displayName.trim().slice(0, 100) : '';
     
     console.log('Join household request received:', { inviteCode: inviteCode.substring(0, 8) + '...', pin: '***', displayName: displayName ? '***' : '(none)', clientIp: clientIp.substring(0, 8) + '...' });
