@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { GroceryItem, CategoryType, getCategoryInfo } from '@/lib/groceryCategories';
@@ -25,6 +25,15 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit }:
   const translatedName = t(`category.${category}` as any);
   const uncheckedCount = items.filter(i => !i.checked).length;
   const checkedCount = items.filter(i => i.checked).length;
+
+  // Auto-collapse when every item in the category is checked off
+  useEffect(() => {
+    if (items.length > 0 && uncheckedCount === 0) {
+      setIsExpanded(false);
+    } else if (uncheckedCount > 0) {
+      setIsExpanded(true);
+    }
+  }, [uncheckedCount, items.length]);
 
   const droppableId = `category:${category}`;
   const { setNodeRef, isOver } = useDroppable({ id: droppableId, data: { category } });
