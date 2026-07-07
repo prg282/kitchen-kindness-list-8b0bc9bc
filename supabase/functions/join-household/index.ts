@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const inviteCode = typeof body.inviteCode === 'string' ? body.inviteCode.trim() : '';
-    const pin = typeof body.pin === 'string' ? body.pin.trim() : '';
+    const inviteCode = typeof body.inviteCode === 'string' ? body.inviteCode.trim().toLowerCase() : '';
+    const pin = typeof body.pin === 'string' ? body.pin.replace(/[\s-]/g, '').trim().toLowerCase() : '';
     const displayName = typeof body.displayName === 'string' ? body.displayName.trim().slice(0, 100) : '';
     
     console.log('Join household request received:', { inviteCode: inviteCode.substring(0, 8) + '...', pin: '***', displayName: displayName ? '***' : '(none)', clientIp: clientIp.substring(0, 8) + '...' });

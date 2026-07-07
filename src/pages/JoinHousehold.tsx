@@ -18,6 +18,21 @@ const JoinHousehold = () => {
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const normalizedPin = pin.replace(/[\s-]/g, '').toLowerCase();
+
+  const getFunctionErrorMessage = async (err: any) => {
+    const response = err?.context;
+    if (response && typeof response.json === 'function') {
+      try {
+        const payload = await response.json();
+        if (typeof payload?.error === 'string') return payload.error;
+      } catch {
+        // Fall back to the SDK message below.
+      }
+    }
+    return err?.message || 'Failed to join household';
+  };
+
   // Note: we intentionally do NOT auto-redirect logged-in users away from
   // this page. People often scan the QR while already signed in — they still
   // need to enter the PIN here. Joining will replace their current session
@@ -27,7 +42,7 @@ const JoinHousehold = () => {
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inviteCode || !pin) {
+    if (!inviteCode || normalizedPin.length !== 6) {
       toast.error('Please enter the PIN code');
       return;
     }
@@ -51,13 +66,13 @@ const JoinHousehold = () => {
       const response = await supabase.functions.invoke('join-household', {
         body: {
           inviteCode,
-          pin,
+          pin: normalizedPin,
           displayName: displayName.trim() || undefined,
         },
       });
 
       if (response.error) {
-        throw new Error(response.error.message || 'Failed to join household');
+        throw new Error(await getFunctionErrorMessage(response.error));
       }
 
       const data = response.data;
@@ -151,7 +166,10 @@ const JoinHousehold = () => {
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
                 placeholder="Enter the 6-character PIN"
-                maxLength={6}
+                maxLength={11}
+                autoCapitalize="none"
+                autoCorrect="off"
+                inputMode="text"
                 className="text-center text-2xl tracking-widest font-mono"
                 disabled={joining}
                 required
@@ -168,7 +186,7 @@ const JoinHousehold = () => {
               <Button 
                 type="submit"
                 className="w-full" 
-                disabled={joining || !pin}
+                disabled={joining || normalizedPin.length !== 6}
               >
                 {joining ? (
                   <>
