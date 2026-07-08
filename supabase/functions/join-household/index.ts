@@ -217,7 +217,10 @@ Deno.serve(async (req) => {
       email: generatedEmail,
       password: generatedPassword,
       email_confirm: true,
-      user_metadata: { display_name: userName },
+      user_metadata: {
+        display_name: userName,
+        join_household_id: invitation.household_id,
+      },
     });
 
     if (authError || !authData.user) {
