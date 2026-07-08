@@ -50,11 +50,8 @@ const JoinHousehold = () => {
     setJoining(true);
     setError(null);
 
-    // If someone is already signed in (e.g. they scanned the QR from inside
-    // the app), sign them out first so setSession can install the new guest
-    // session cleanly without colliding with the existing one.
-    if (user) {
     try {
+
       const response = await supabase.functions.invoke('join-household', {
         body: {
           inviteCode,
