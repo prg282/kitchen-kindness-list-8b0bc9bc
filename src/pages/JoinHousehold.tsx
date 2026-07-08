@@ -50,19 +50,8 @@ const JoinHousehold = () => {
     setJoining(true);
     setError(null);
 
-    // If someone is already signed in (e.g. they scanned the QR from inside
-    // the app), sign them out first so setSession can install the new guest
-    // session cleanly without colliding with the existing one.
-    if (user) {
-      try {
-        await supabase.auth.signOut();
-      } catch (err) {
-        console.warn('Sign-out before join failed (continuing):', err);
-      }
-    }
-
-
     try {
+
       const response = await supabase.functions.invoke('join-household', {
         body: {
           inviteCode,
@@ -81,16 +70,19 @@ const JoinHousehold = () => {
         throw new Error(data.error);
       }
 
+      if (data.joinedExisting) {
+        toast.success(`You've joined "${data.household?.name || 'the household'}"!`);
+        window.location.href = '/';
+        return;
+      }
+
       if (data.session) {
-        // Set the session in Supabase client
         await supabase.auth.setSession({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
         });
 
         toast.success(`Welcome! You've joined "${data.household?.name || 'the household'}"!`);
-        
-        // Redirect to home with full reload to ensure session is picked up
         window.location.href = '/';
       } else {
         throw new Error('No session returned');
