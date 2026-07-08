@@ -141,24 +141,83 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Generate unique email and password for auto-login
+    // If the caller is already authenticated, join with their EXISTING
+    // account instead of provisioning a new guest. This prevents creating
+    // an orphan household + user for every join.
+    const authHeader = req.headers.get('Authorization') || '';
+    let existingUserId: string | null = null;
+    let existingUserEmail: string | null = null;
+    if (authHeader.startsWith('Bearer ')) {
+      const token = authHeader.slice('Bearer '.length);
+      try {
+        const { data: userData } = await supabaseAdmin.auth.getUser(token);
+        if (userData?.user) {
+          existingUserId = userData.user.id;
+          existingUserEmail = userData.user.email ?? null;
+        }
+      } catch (e) {
+        console.warn('Could not resolve caller from Authorization header:', e);
+      }
+    }
+
+    const household = Array.isArray(invitation.households) ? invitation.households[0] : invitation.households;
+
+    if (existingUserId) {
+      console.log('Joining with existing account:', existingUserId);
+
+      const { error: assignError } = await supabaseAdmin.rpc('admin_assign_household', {
+        p_user_id: existingUserId,
+        p_household_id: invitation.household_id,
+      });
+
+      if (assignError) {
+        console.error('Failed to assign household to existing user:', assignError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to join household' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (displayName) {
+        await supabaseAdmin
+          .from('profiles')
+          .update({ display_name: displayName })
+          .eq('id', existingUserId);
+      }
+
+      await supabaseAdmin
+        .from('household_invitations')
+        .update({ used_by: existingUserId, used_at: new Date().toISOString() })
+        .eq('id', invitation.id);
+
+      await supabaseAdmin
+        .from('invite_failed_attempts')
+        .delete()
+        .eq('invite_code', inviteCode);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          joinedExisting: true,
+          household,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // No caller session — provision a guest account for the invitee.
     const uniqueId = crypto.randomUUID().substring(0, 8);
     const generatedEmail = `guest_${uniqueId}@household.local`;
     const generatedPassword = crypto.randomUUID();
     const userName = displayName || `Guest ${uniqueId.substring(0, 4)}`;
 
-    console.log('Creating user account...');
+    console.log('Creating guest user account...');
 
-    // Create user with admin client. We deliberately do NOT pass
-    // join_household_id in user_metadata — the handle_new_user trigger
-    // ignores it, and the household is assigned below via a service-role RPC.
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: generatedEmail,
       password: generatedPassword,
       email_confirm: true,
-      user_metadata: {
-        display_name: userName,
-      },
+      user_metadata: { display_name: userName },
     });
 
     if (authError || !authData.user) {
@@ -170,11 +229,7 @@ Deno.serve(async (req) => {
     }
 
     const userId = authData.user.id;
-    console.log('User created:', userId);
 
-    // Assign the new user to the invited household via the secure admin RPC.
-    // This is the only path that can change profiles.household_id.
-    console.log('Assigning household via admin RPC...');
     const { error: assignError } = await supabaseAdmin.rpc('admin_assign_household', {
       p_user_id: userId,
       p_household_id: invitation.household_id,
@@ -188,44 +243,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Update the display name (non-sensitive column, normal UPDATE is fine).
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .update({ display_name: userName })
-      .eq('id', userId);
+    await supabaseAdmin.from('profiles').update({ display_name: userName }).eq('id', userId);
 
-    if (profileError) {
-      console.error('Failed to update profile display name:', profileError);
-    }
-
-    // Mark invitation as used
-    console.log('Marking invitation as used...');
-    const { error: updateError } = await supabaseAdmin
+    await supabaseAdmin
       .from('household_invitations')
-      .update({
-        used_by: userId,
-        used_at: new Date().toISOString(),
-      })
+      .update({ used_by: userId, used_at: new Date().toISOString() })
       .eq('id', invitation.id);
 
-    if (updateError) {
-      console.error('Failed to mark invitation as used:', updateError);
-    }
-
-    // Clean up failed attempts record for this invite code (successful join)
     await supabaseAdmin
       .from('invite_failed_attempts')
       .delete()
       .eq('invite_code', inviteCode);
 
-    // Sign in the user to get session
-    console.log('Signing in user...');
-    const { data: signInData, error: signInError } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'magiclink',
-      email: generatedEmail,
-    });
-
-    // Use signInWithPassword for immediate session
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -244,16 +273,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Successfully joined household!');
-
-    const household = Array.isArray(invitation.households) ? invitation.households[0] : invitation.households;
-
     return new Response(
       JSON.stringify({
         success: true,
         session: sessionData.session,
         user: sessionData.user,
-        household: household,
+        household,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
