@@ -74,12 +74,15 @@ export function useGroceryList() {
     }
 
     setKnownItems(
-      data.map((item) => ({
+      data.map((item: any) => ({
         id: item.id,
         name: item.name,
         category: item.category as CategoryType,
         usage_count: item.usage_count,
         last_used: item.last_used,
+        notes: item.notes || undefined,
+        avg_days_between: item.avg_days_between ?? null,
+        last_purchased_at: item.last_purchased_at ?? null,
       }))
     );
   }, [householdId]);
