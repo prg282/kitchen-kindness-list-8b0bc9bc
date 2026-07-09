@@ -190,8 +190,15 @@ export function useGroceryList() {
   }, [householdId]);
 
   // Add item
-  const addItem = async (name: string, category: CategoryType, quantity?: string) => {
+  const addItem = async (name: string, category: CategoryType, quantity?: string, notes?: string) => {
     if (!householdId || !user) return;
+
+    // If notes not provided, pull default from known items
+    let resolvedNotes = notes;
+    if (resolvedNotes === undefined) {
+      const known = knownItems.find(k => k.name.toLowerCase().trim() === name.toLowerCase().trim());
+      if (known?.notes) resolvedNotes = known.notes;
+    }
 
     // Check if item already exists (case-insensitive)
     const normalizedName = name.toLowerCase().trim();
@@ -200,14 +207,12 @@ export function useGroceryList() {
     );
 
     if (existingItem) {
-      // If item exists and is checked, uncheck it; otherwise just update usage count
       if (existingItem.checked) {
         await toggleItem(existingItem.id);
         toast.success(`${existingItem.name} added back to list`);
       } else {
         toast.info(`${existingItem.name} is already on your list`);
       }
-      // Still update known items usage
       await saveKnownItem(name, category);
       return;
     }
@@ -221,6 +226,7 @@ export function useGroceryList() {
       checked: false,
       created_by: user.id,
       quantity,
+      notes: resolvedNotes,
     };
     setItems(prev => [...prev, newItem]);
 
@@ -233,19 +239,18 @@ export function useGroceryList() {
         checked: false,
         created_by: user.id,
         quantity: quantity || null,
-      })
+        notes: resolvedNotes || null,
+      } as any)
       .select()
       .single();
 
     if (error) {
       console.error('Error adding item:', error);
       toast.error('Failed to add item');
-      // Rollback
       setItems(prev => prev.filter(i => i.id !== tempId));
       return;
     }
 
-    // Replace temp item with real one
     setItems(prev => prev.map(i => i.id === tempId ? {
       id: data.id,
       name: data.name,
@@ -253,9 +258,9 @@ export function useGroceryList() {
       checked: data.checked,
       created_by: data.created_by || undefined,
       quantity: data.quantity || undefined,
+      notes: (data as any).notes || undefined,
     } : i));
 
-    // Save to known items
     await saveKnownItem(name, category);
   };
 
