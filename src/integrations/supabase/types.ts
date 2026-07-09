@@ -23,6 +23,7 @@ export type Database = {
           household_id: string
           id: string
           name: string
+          notes: string | null
           quantity: string | null
           sort_order: number
           updated_at: string
@@ -35,6 +36,7 @@ export type Database = {
           household_id: string
           id?: string
           name: string
+          notes?: string | null
           quantity?: string | null
           sort_order?: number
           updated_at?: string
@@ -47,6 +49,7 @@ export type Database = {
           household_id?: string
           id?: string
           name?: string
+          notes?: string | null
           quantity?: string | null
           sort_order?: number
           updated_at?: string
@@ -152,30 +155,39 @@ export type Database = {
       }
       known_items: {
         Row: {
+          avg_days_between: number | null
           category: string
           default_quantity: string | null
           household_id: string
           id: string
+          last_purchased_at: string | null
           last_used: string
           name: string
+          notes: string | null
           usage_count: number
         }
         Insert: {
+          avg_days_between?: number | null
           category?: string
           default_quantity?: string | null
           household_id: string
           id?: string
+          last_purchased_at?: string | null
           last_used?: string
           name: string
+          notes?: string | null
           usage_count?: number
         }
         Update: {
+          avg_days_between?: number | null
           category?: string
           default_quantity?: string | null
           household_id?: string
           id?: string
+          last_purchased_at?: string | null
           last_used?: string
           name?: string
+          notes?: string | null
           usage_count?: number
         }
         Relationships: [
