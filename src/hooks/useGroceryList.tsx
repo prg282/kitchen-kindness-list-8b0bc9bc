@@ -148,7 +148,6 @@ export function useGroceryList() {
           if (payload.eventType === 'INSERT') {
             const newItem = payload.new as any;
             setItems(prev => {
-              // Check if item already exists to prevent duplicates
               if (prev.some(i => i.id === newItem.id)) return prev;
               return [...prev, {
                 id: newItem.id,
@@ -158,12 +157,13 @@ export function useGroceryList() {
                 created_by: newItem.created_by || undefined,
                 quantity: newItem.quantity || undefined,
                 sort_order: newItem.sort_order ?? 0,
+                notes: newItem.notes || undefined,
               }];
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedItem = payload.new as any;
-            setItems(prev => prev.map(item => 
-              item.id === updatedItem.id 
+            setItems(prev => prev.map(item =>
+              item.id === updatedItem.id
                 ? {
                     id: updatedItem.id,
                     name: updatedItem.name,
@@ -172,6 +172,7 @@ export function useGroceryList() {
                     created_by: updatedItem.created_by || undefined,
                     quantity: updatedItem.quantity || undefined,
                     sort_order: updatedItem.sort_order ?? 0,
+                    notes: updatedItem.notes || undefined,
                   }
                 : item
             ));
