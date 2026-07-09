@@ -17,6 +17,7 @@ export interface GroceryItem {
   created_by?: string;
   quantity?: string;
   sort_order?: number;
+  notes?: string;
 }
 
 export interface KnownItem {
@@ -25,6 +26,9 @@ export interface KnownItem {
   category: CategoryType;
   usage_count: number;
   last_used: string;
+  notes?: string;
+  avg_days_between?: number | null;
+  last_purchased_at?: string | null;
 }
 
 export interface Category {

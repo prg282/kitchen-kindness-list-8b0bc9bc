@@ -45,14 +45,15 @@ export function useGroceryList() {
   setItems(
       data
         .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-        .map((item) => ({
+        .map((item: any) => ({
           id: item.id,
           name: item.name,
           category: item.category as CategoryType,
           checked: item.checked,
           created_by: item.created_by || undefined,
           quantity: item.quantity || undefined,
-          sort_order: (item as any).sort_order ?? 0,
+          sort_order: item.sort_order ?? 0,
+          notes: item.notes || undefined,
         }))
     );
   }, [householdId]);
@@ -73,12 +74,15 @@ export function useGroceryList() {
     }
 
     setKnownItems(
-      data.map((item) => ({
+      data.map((item: any) => ({
         id: item.id,
         name: item.name,
         category: item.category as CategoryType,
         usage_count: item.usage_count,
         last_used: item.last_used,
+        notes: item.notes || undefined,
+        avg_days_between: item.avg_days_between ?? null,
+        last_purchased_at: item.last_purchased_at ?? null,
       }))
     );
   }, [householdId]);
@@ -144,7 +148,6 @@ export function useGroceryList() {
           if (payload.eventType === 'INSERT') {
             const newItem = payload.new as any;
             setItems(prev => {
-              // Check if item already exists to prevent duplicates
               if (prev.some(i => i.id === newItem.id)) return prev;
               return [...prev, {
                 id: newItem.id,
@@ -154,12 +157,13 @@ export function useGroceryList() {
                 created_by: newItem.created_by || undefined,
                 quantity: newItem.quantity || undefined,
                 sort_order: newItem.sort_order ?? 0,
+                notes: newItem.notes || undefined,
               }];
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedItem = payload.new as any;
-            setItems(prev => prev.map(item => 
-              item.id === updatedItem.id 
+            setItems(prev => prev.map(item =>
+              item.id === updatedItem.id
                 ? {
                     id: updatedItem.id,
                     name: updatedItem.name,
@@ -168,6 +172,7 @@ export function useGroceryList() {
                     created_by: updatedItem.created_by || undefined,
                     quantity: updatedItem.quantity || undefined,
                     sort_order: updatedItem.sort_order ?? 0,
+                    notes: updatedItem.notes || undefined,
                   }
                 : item
             ));
@@ -185,8 +190,15 @@ export function useGroceryList() {
   }, [householdId]);
 
   // Add item
-  const addItem = async (name: string, category: CategoryType, quantity?: string) => {
+  const addItem = async (name: string, category: CategoryType, quantity?: string, notes?: string) => {
     if (!householdId || !user) return;
+
+    // If notes not provided, pull default from known items
+    let resolvedNotes = notes;
+    if (resolvedNotes === undefined) {
+      const known = knownItems.find(k => k.name.toLowerCase().trim() === name.toLowerCase().trim());
+      if (known?.notes) resolvedNotes = known.notes;
+    }
 
     // Check if item already exists (case-insensitive)
     const normalizedName = name.toLowerCase().trim();
@@ -195,14 +207,12 @@ export function useGroceryList() {
     );
 
     if (existingItem) {
-      // If item exists and is checked, uncheck it; otherwise just update usage count
       if (existingItem.checked) {
         await toggleItem(existingItem.id);
         toast.success(`${existingItem.name} added back to list`);
       } else {
         toast.info(`${existingItem.name} is already on your list`);
       }
-      // Still update known items usage
       await saveKnownItem(name, category);
       return;
     }
@@ -216,6 +226,7 @@ export function useGroceryList() {
       checked: false,
       created_by: user.id,
       quantity,
+      notes: resolvedNotes,
     };
     setItems(prev => [...prev, newItem]);
 
@@ -228,19 +239,18 @@ export function useGroceryList() {
         checked: false,
         created_by: user.id,
         quantity: quantity || null,
-      })
+        notes: resolvedNotes || null,
+      } as any)
       .select()
       .single();
 
     if (error) {
       console.error('Error adding item:', error);
       toast.error('Failed to add item');
-      // Rollback
       setItems(prev => prev.filter(i => i.id !== tempId));
       return;
     }
 
-    // Replace temp item with real one
     setItems(prev => prev.map(i => i.id === tempId ? {
       id: data.id,
       name: data.name,
@@ -248,9 +258,9 @@ export function useGroceryList() {
       checked: data.checked,
       created_by: data.created_by || undefined,
       quantity: data.quantity || undefined,
+      notes: (data as any).notes || undefined,
     } : i));
 
-    // Save to known items
     await saveKnownItem(name, category);
   };
 
@@ -303,27 +313,60 @@ export function useGroceryList() {
     }
   };
 
+  // Record a purchase in known_items (updates cycle estimate + notes propagation)
+  const recordPurchase = async (name: string) => {
+    if (!householdId) return;
+    const normalized = name.toLowerCase().trim();
+    const known = knownItems.find(k => k.name.toLowerCase() === normalized);
+    if (!known) return;
+
+    const now = new Date();
+    let newAvg = known.avg_days_between ?? null;
+    if (known.last_purchased_at) {
+      const prev = new Date(known.last_purchased_at);
+      const days = Math.max(0.5, (now.getTime() - prev.getTime()) / 86400000);
+      // Exponentially-weighted moving average, biased to recent behaviour
+      newAvg = newAvg && newAvg > 0 ? newAvg * 0.6 + days * 0.4 : days;
+    }
+
+    await supabase
+      .from('known_items')
+      .update({ last_purchased_at: now.toISOString(), avg_days_between: newAvg } as any)
+      .eq('id', known.id);
+
+    setKnownItems(prev => prev.map(k => k.id === known.id
+      ? { ...k, last_purchased_at: now.toISOString(), avg_days_between: newAvg }
+      : k));
+  };
+
   // Toggle item
   const toggleItem = async (id: string) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
+    const willBeChecked = !item.checked;
+
     // Optimistic update
-    setItems(prev => prev.map(i => 
-      i.id === id ? { ...i, checked: !i.checked } : i
+    setItems(prev => prev.map(i =>
+      i.id === id ? { ...i, checked: willBeChecked } : i
     ));
 
     const { error } = await withSync(supabase
       .from('grocery_items')
-      .update({ checked: !item.checked })
+      .update({ checked: willBeChecked })
       .eq('id', id));
 
     if (error) {
       console.error('Error toggling item:', error);
-      // Rollback
-      setItems(prev => prev.map(i => 
+      setItems(prev => prev.map(i =>
         i.id === id ? { ...i, checked: item.checked } : i
       ));
+      return;
+    }
+
+    if (willBeChecked) {
+      // Fire-and-forget cycle tracking
+      recordPurchase(item.name);
     }
   };
 
@@ -332,7 +375,6 @@ export function useGroceryList() {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
-    // Optimistic update
     setItems(prev => prev.filter(i => i.id !== id));
 
     const { error } = await withSync(supabase
@@ -342,39 +384,51 @@ export function useGroceryList() {
 
     if (error) {
       console.error('Error deleting item:', error);
-      // Rollback
       setItems(prev => [...prev, item]);
     }
   };
 
   // Edit item
-  const editItem = async (id: string, newName: string, newQuantity?: string) => {
+  const editItem = async (id: string, newName: string, newQuantity?: string, newNotes?: string) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
     const newCategory = categorizeItem(newName);
-    
-    // Optimistic update
-    setItems(prev => prev.map(i => 
-      i.id === id ? { ...i, name: newName, category: newCategory, quantity: newQuantity } : i
+    const normalizedNotes = newNotes === undefined ? item.notes : (newNotes.trim() || undefined);
+
+    setItems(prev => prev.map(i =>
+      i.id === id ? { ...i, name: newName, category: newCategory, quantity: newQuantity, notes: normalizedNotes } : i
     ));
 
     const { error } = await withSync(supabase
       .from('grocery_items')
-      .update({ name: newName, category: newCategory, quantity: newQuantity || null })
+      .update({
+        name: newName,
+        category: newCategory,
+        quantity: newQuantity || null,
+        notes: normalizedNotes || null,
+      } as any)
       .eq('id', id));
 
     if (error) {
       console.error('Error editing item:', error);
-      // Rollback
-      setItems(prev => prev.map(i => 
-        i.id === id ? item : i
-      ));
+      setItems(prev => prev.map(i => i.id === id ? item : i));
       return;
     }
 
-    // Save to known items
     await saveKnownItem(newName, newCategory);
+
+    // Persist notes as the default for this known item so it carries next time
+    if (normalizedNotes !== undefined && householdId) {
+      const known = knownItems.find(k => k.name.toLowerCase() === newName.toLowerCase().trim());
+      if (known) {
+        await supabase
+          .from('known_items')
+          .update({ notes: normalizedNotes || null } as any)
+          .eq('id', known.id);
+        setKnownItems(prev => prev.map(k => k.id === known.id ? { ...k, notes: normalizedNotes } : k));
+      }
+    }
   };
 
   // Clear checked items
@@ -508,6 +562,34 @@ export function useGroceryList() {
     await reorderItems(reordered as any);
   };
 
+  // Compute recurring reminders: known items whose typical cycle suggests they're due,
+  // and that aren't currently on the list.
+  const getReminders = useCallback((): KnownItem[] => {
+    const now = Date.now();
+    const currentNames = new Set(items.map(i => i.name.toLowerCase().trim()));
+    return knownItems
+      .filter(k => k.avg_days_between && k.avg_days_between > 0 && k.last_purchased_at)
+      .filter(k => !currentNames.has(k.name.toLowerCase().trim()))
+      .map(k => {
+        const due = new Date(k.last_purchased_at as string).getTime() + (k.avg_days_between as number) * 86400000;
+        return { known: k, overdueDays: (now - due) / 86400000 };
+      })
+      .filter(x => x.overdueDays >= -1) // include items due within ~1 day
+      .sort((a, b) => b.overdueDays - a.overdueDays)
+      .slice(0, 5)
+      .map(x => x.known);
+  }, [items, knownItems]);
+
+  const dismissReminder = async (knownId: string) => {
+    // Bump last_purchased_at forward by one cycle so it stops nudging for now
+    const k = knownItems.find(x => x.id === knownId);
+    if (!k) return;
+    const cycle = (k.avg_days_between ?? 7) * 86400000;
+    const newTs = new Date(Date.now() - cycle * 0.1).toISOString(); // reset "just bought"
+    await supabase.from('known_items').update({ last_purchased_at: newTs } as any).eq('id', knownId);
+    setKnownItems(prev => prev.map(x => x.id === knownId ? { ...x, last_purchased_at: newTs } : x));
+  };
+
   return {
     items,
     loading,
@@ -521,5 +603,7 @@ export function useGroceryList() {
     deleteKnownItem,
     reorderItems,
     moveItemToCategory,
+    getReminders,
+    dismissReminder,
   };
 }

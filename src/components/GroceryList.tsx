@@ -6,7 +6,8 @@ import { CategorySection } from './CategorySection';
 import { GroceryItemComponent } from './GroceryItem';
 import { GroceryListSkeleton } from './GroceryListSkeleton';
 import { SyncStatus } from './SyncStatus';
-import { CategoryType, categories, GroceryItem } from '@/lib/groceryCategories';
+import { RemindersBanner } from './RemindersBanner';
+import { CategoryType, categories, GroceryItem, KnownItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -41,10 +42,17 @@ export function GroceryList() {
     deleteKnownItem,
     reorderItems,
     moveItemToCategory,
+    getReminders,
+    dismissReminder,
   } = useGroceryList();
 
   const { profile, signOut } = useAuth();
   const { t } = useLanguage();
+
+  const reminders = useMemo(() => getReminders(), [getReminders]);
+  const handleAddFromReminder = (k: KnownItem) => {
+    addItem(k.name, k.category, undefined, k.notes);
+  };
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overCategory, setOverCategory] = useState<CategoryType | null>(null);
@@ -273,6 +281,12 @@ export function GroceryList() {
 
       {/* Content */}
       <main className="container py-4 md:py-6">
+        <RemindersBanner
+          reminders={reminders}
+          onAdd={handleAddFromReminder}
+          onDismiss={dismissReminder}
+        />
+
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 md:py-24 text-center">
             <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-muted to-accent flex items-center justify-center mb-5 shadow-soft">
