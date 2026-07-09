@@ -42,10 +42,17 @@ export function GroceryList() {
     deleteKnownItem,
     reorderItems,
     moveItemToCategory,
+    getReminders,
+    dismissReminder,
   } = useGroceryList();
 
   const { profile, signOut } = useAuth();
   const { t } = useLanguage();
+
+  const reminders = useMemo(() => getReminders(), [getReminders]);
+  const handleAddFromReminder = (k: KnownItem) => {
+    addItem(k.name, k.category, undefined, k.notes);
+  };
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overCategory, setOverCategory] = useState<CategoryType | null>(null);
