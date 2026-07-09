@@ -313,27 +313,60 @@ export function useGroceryList() {
     }
   };
 
+  // Record a purchase in known_items (updates cycle estimate + notes propagation)
+  const recordPurchase = async (name: string) => {
+    if (!householdId) return;
+    const normalized = name.toLowerCase().trim();
+    const known = knownItems.find(k => k.name.toLowerCase() === normalized);
+    if (!known) return;
+
+    const now = new Date();
+    let newAvg = known.avg_days_between ?? null;
+    if (known.last_purchased_at) {
+      const prev = new Date(known.last_purchased_at);
+      const days = Math.max(0.5, (now.getTime() - prev.getTime()) / 86400000);
+      // Exponentially-weighted moving average, biased to recent behaviour
+      newAvg = newAvg && newAvg > 0 ? newAvg * 0.6 + days * 0.4 : days;
+    }
+
+    await supabase
+      .from('known_items')
+      .update({ last_purchased_at: now.toISOString(), avg_days_between: newAvg } as any)
+      .eq('id', known.id);
+
+    setKnownItems(prev => prev.map(k => k.id === known.id
+      ? { ...k, last_purchased_at: now.toISOString(), avg_days_between: newAvg }
+      : k));
+  };
+
   // Toggle item
   const toggleItem = async (id: string) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
+    const willBeChecked = !item.checked;
+
     // Optimistic update
-    setItems(prev => prev.map(i => 
-      i.id === id ? { ...i, checked: !i.checked } : i
+    setItems(prev => prev.map(i =>
+      i.id === id ? { ...i, checked: willBeChecked } : i
     ));
 
     const { error } = await withSync(supabase
       .from('grocery_items')
-      .update({ checked: !item.checked })
+      .update({ checked: willBeChecked })
       .eq('id', id));
 
     if (error) {
       console.error('Error toggling item:', error);
-      // Rollback
-      setItems(prev => prev.map(i => 
+      setItems(prev => prev.map(i =>
         i.id === id ? { ...i, checked: item.checked } : i
       ));
+      return;
+    }
+
+    if (willBeChecked) {
+      // Fire-and-forget cycle tracking
+      recordPurchase(item.name);
     }
   };
 
@@ -342,7 +375,6 @@ export function useGroceryList() {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
-    // Optimistic update
     setItems(prev => prev.filter(i => i.id !== id));
 
     const { error } = await withSync(supabase
@@ -352,39 +384,51 @@ export function useGroceryList() {
 
     if (error) {
       console.error('Error deleting item:', error);
-      // Rollback
       setItems(prev => [...prev, item]);
     }
   };
 
   // Edit item
-  const editItem = async (id: string, newName: string, newQuantity?: string) => {
+  const editItem = async (id: string, newName: string, newQuantity?: string, newNotes?: string) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
 
     const newCategory = categorizeItem(newName);
-    
-    // Optimistic update
-    setItems(prev => prev.map(i => 
-      i.id === id ? { ...i, name: newName, category: newCategory, quantity: newQuantity } : i
+    const normalizedNotes = newNotes === undefined ? item.notes : (newNotes.trim() || undefined);
+
+    setItems(prev => prev.map(i =>
+      i.id === id ? { ...i, name: newName, category: newCategory, quantity: newQuantity, notes: normalizedNotes } : i
     ));
 
     const { error } = await withSync(supabase
       .from('grocery_items')
-      .update({ name: newName, category: newCategory, quantity: newQuantity || null })
+      .update({
+        name: newName,
+        category: newCategory,
+        quantity: newQuantity || null,
+        notes: normalizedNotes || null,
+      } as any)
       .eq('id', id));
 
     if (error) {
       console.error('Error editing item:', error);
-      // Rollback
-      setItems(prev => prev.map(i => 
-        i.id === id ? item : i
-      ));
+      setItems(prev => prev.map(i => i.id === id ? item : i));
       return;
     }
 
-    // Save to known items
     await saveKnownItem(newName, newCategory);
+
+    // Persist notes as the default for this known item so it carries next time
+    if (normalizedNotes !== undefined && householdId) {
+      const known = knownItems.find(k => k.name.toLowerCase() === newName.toLowerCase().trim());
+      if (known) {
+        await supabase
+          .from('known_items')
+          .update({ notes: normalizedNotes || null } as any)
+          .eq('id', known.id);
+        setKnownItems(prev => prev.map(k => k.id === known.id ? { ...k, notes: normalizedNotes } : k));
+      }
+    }
   };
 
   // Clear checked items
