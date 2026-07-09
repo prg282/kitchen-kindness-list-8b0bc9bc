@@ -562,6 +562,34 @@ export function useGroceryList() {
     await reorderItems(reordered as any);
   };
 
+  // Compute recurring reminders: known items whose typical cycle suggests they're due,
+  // and that aren't currently on the list.
+  const getReminders = useCallback((): KnownItem[] => {
+    const now = Date.now();
+    const currentNames = new Set(items.map(i => i.name.toLowerCase().trim()));
+    return knownItems
+      .filter(k => k.avg_days_between && k.avg_days_between > 0 && k.last_purchased_at)
+      .filter(k => !currentNames.has(k.name.toLowerCase().trim()))
+      .map(k => {
+        const due = new Date(k.last_purchased_at as string).getTime() + (k.avg_days_between as number) * 86400000;
+        return { known: k, overdueDays: (now - due) / 86400000 };
+      })
+      .filter(x => x.overdueDays >= -1) // include items due within ~1 day
+      .sort((a, b) => b.overdueDays - a.overdueDays)
+      .slice(0, 5)
+      .map(x => x.known);
+  }, [items, knownItems]);
+
+  const dismissReminder = async (knownId: string) => {
+    // Bump last_purchased_at forward by one cycle so it stops nudging for now
+    const k = knownItems.find(x => x.id === knownId);
+    if (!k) return;
+    const cycle = (k.avg_days_between ?? 7) * 86400000;
+    const newTs = new Date(Date.now() - cycle * 0.1).toISOString(); // reset "just bought"
+    await supabase.from('known_items').update({ last_purchased_at: newTs } as any).eq('id', knownId);
+    setKnownItems(prev => prev.map(x => x.id === knownId ? { ...x, last_purchased_at: newTs } : x));
+  };
+
   return {
     items,
     loading,
@@ -575,5 +603,7 @@ export function useGroceryList() {
     deleteKnownItem,
     reorderItems,
     moveItemToCategory,
+    getReminders,
+    dismissReminder,
   };
 }
