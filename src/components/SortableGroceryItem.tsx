@@ -9,7 +9,7 @@ interface SortableGroceryItemProps {
   item: GroceryItem;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  onEdit: (id: string, newName: string, newQuantity?: string) => void;
+  onEdit: (id: string, newName: string, newQuantity?: string, newNotes?: string) => void;
 }
 
 export function SortableGroceryItem({ item, onToggle, onDelete, onEdit }: SortableGroceryItemProps) {
