@@ -281,6 +281,12 @@ export function GroceryList() {
 
       {/* Content */}
       <main className="container py-4 md:py-6">
+        <RemindersBanner
+          reminders={reminders}
+          onAdd={handleAddFromReminder}
+          onDismiss={dismissReminder}
+        />
+
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 md:py-24 text-center">
             <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-muted to-accent flex items-center justify-center mb-5 shadow-soft">
