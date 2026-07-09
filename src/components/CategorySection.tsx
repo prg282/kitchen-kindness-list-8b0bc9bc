@@ -14,7 +14,7 @@ interface CategorySectionProps {
   items: GroceryItemWithCreatedBy[];
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
-  onEdit: (id: string, newName: string, newQuantity?: string) => void;
+  onEdit: (id: string, newName: string, newQuantity?: string, newNotes?: string) => void;
 }
 
 export function CategorySection({ category, items, onToggle, onDelete, onEdit }: CategorySectionProps) {
