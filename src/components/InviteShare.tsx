@@ -1,9 +1,21 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Share2, Copy, Mail, MessageCircle, Check, KeyRound, QrCode, Download } from 'lucide-react';
+import {
+  Loader2,
+  Share2,
+  Copy,
+  Mail,
+  MessageCircle,
+  Check,
+  KeyRound,
+  QrCode,
+  Download,
+  Link as LinkIcon,
+  ArrowLeft,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 interface InviteShareProps {
@@ -12,45 +24,72 @@ interface InviteShareProps {
   userId: string;
 }
 
+type InviteMethod = 'link' | 'qr' | 'whatsapp' | 'email' | 'share';
+
+interface MethodDef {
+  id: InviteMethod;
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  guard?: () => boolean;
+}
+
+const METHODS: MethodDef[] = [
+  { id: 'link', label: 'Copy Link', description: 'Copy an invite link to share anywhere', icon: LinkIcon },
+  { id: 'qr', label: 'QR Code', description: 'Show a QR code to scan in person', icon: QrCode },
+  { id: 'whatsapp', label: 'WhatsApp', description: 'Send the invite via WhatsApp', icon: MessageCircle },
+  { id: 'email', label: 'Email', description: 'Send the invite by email', icon: Mail },
+  {
+    id: 'share',
+    label: 'Device Share',
+    description: 'Use your phone’s share menu',
+    icon: Share2,
+    guard: () => typeof navigator !== 'undefined' && typeof navigator.share === 'function',
+  },
+];
+
 const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) => {
+  const [method, setMethod] = useState<InviteMethod | null>(null);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [invitePin, setInvitePin] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pinCopied, setPinCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  const generateInviteLink = async () => {
+  const inviteUrl = inviteCode ? `${window.location.origin}/join/${inviteCode}` : '';
+
+  const ensureInvite = async () => {
+    if (inviteCode) return { code: inviteCode, pin: invitePin! };
     setGenerating(true);
     try {
       const { data, error } = await supabase
         .from('household_invitations')
-        .insert({
-          household_id: householdId,
-          created_by: userId,
-        })
+        .insert({ household_id: householdId, created_by: userId })
         .select('invite_code, pin')
         .single();
-
       if (error) throw error;
       setInviteCode(data.invite_code);
       setInvitePin(data.pin);
-      toast.success('Invite link generated!');
+      return { code: data.invite_code as string, pin: data.pin as string };
     } catch (err: any) {
       console.error('Error generating invite:', err);
-      toast.error('Failed to generate invite link');
+      toast.error('Failed to generate invite');
+      throw err;
     } finally {
       setGenerating(false);
     }
   };
 
-  const getInviteUrl = () => {
-    return `${window.location.origin}/join/${inviteCode}`;
-  };
+  useEffect(() => {
+    if (method && !inviteCode && !generating) {
+      ensureInvite().catch(() => setMethod(null));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [method]);
 
   useEffect(() => {
-    if (!inviteCode) {
+    if (method !== 'qr' || !inviteCode) {
       setQrDataUrl(null);
       return;
     }
@@ -58,10 +97,32 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
     QRCode.toDataURL(url, { width: 320, margin: 2, errorCorrectionLevel: 'M' })
       .then(setQrDataUrl)
       .catch((err) => console.warn('QR generation failed:', err));
-  }, [inviteCode]);
+  }, [method, inviteCode]);
 
-  const getInviteMessage = () => {
-    return `Join my household "${householdName}" on our Grocery List app!\n\nClick here to join: ${getInviteUrl()}\n\nPIN: ${invitePin}`;
+  const inviteMessage = () =>
+    `Join my household "${householdName}" on our Grocery List app!\n\nClick here to join: ${inviteUrl}\n\nPIN: ${invitePin}`;
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      toast.success('Link copied');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy link');
+    }
+  };
+
+  const copyPin = async () => {
+    if (!invitePin) return;
+    try {
+      await navigator.clipboard.writeText(invitePin);
+      setPinCopied(true);
+      toast.success('PIN copied');
+      setTimeout(() => setPinCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy PIN');
+    }
   };
 
   const downloadQr = () => {
@@ -72,57 +133,55 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
     a.click();
   };
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(getInviteUrl());
-      setCopied(true);
-      toast.success('Link copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error('Failed to copy link');
-    }
+  const openWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(inviteMessage())}`, '_blank');
   };
 
-  const copyPinToClipboard = async () => {
-    if (!invitePin) return;
-    try {
-      await navigator.clipboard.writeText(invitePin);
-      setPinCopied(true);
-      toast.success('PIN copied to clipboard!');
-      setTimeout(() => setPinCopied(false), 2000);
-    } catch {
-      toast.error('Failed to copy PIN');
-    }
-  };
-
-  const shareViaWebShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Join ${householdName}`,
-          text: getInviteMessage(),
-          url: getInviteUrl(),
-        });
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          toast.error('Failed to share');
-        }
-      }
-    } else {
-      copyToClipboard();
-    }
-  };
-
-  const shareViaWhatsApp = () => {
-    const message = encodeURIComponent(getInviteMessage());
-    window.open(`https://wa.me/?text=${message}`, '_blank');
-  };
-
-  const shareViaEmail = () => {
+  const openEmail = () => {
     const subject = encodeURIComponent(`Join my household "${householdName}"`);
-    const body = encodeURIComponent(getInviteMessage());
+    const body = encodeURIComponent(inviteMessage());
     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
   };
+
+  const openDeviceShare = async () => {
+    if (typeof navigator.share !== 'function') {
+      copyLink();
+      return;
+    }
+    try {
+      await navigator.share({
+        title: `Join ${householdName}`,
+        text: inviteMessage(),
+        url: inviteUrl,
+      });
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') toast.error('Failed to share');
+    }
+  };
+
+  const reset = () => {
+    setMethod(null);
+  };
+
+  const availableMethods = METHODS.filter((m) => !m.guard || m.guard());
+
+  const PinCard = () =>
+    invitePin ? (
+      <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+              <KeyRound className="w-3 h-3 shrink-0" />
+              <span>PIN Code (required to join)</span>
+            </p>
+            <p className="text-2xl font-mono font-bold tracking-widest text-primary">{invitePin}</p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={copyPin} className="shrink-0">
+            {pinCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+          </Button>
+        </div>
+      </div>
+    ) : null;
 
   return (
     <Card>
@@ -132,149 +191,124 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
           Invite Members
         </CardTitle>
         <CardDescription>
-          Generate a secure invite link and PIN to allow family members or roommates to join your household. Once they join, you'll share the same grocery list in real-time.
+          {method
+            ? 'Send this invite. It expires in 7 days.'
+            : 'Choose how you’d like to invite someone to join your household.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!inviteCode ? (
-          <Button onClick={generateInviteLink} disabled={generating}>
-            {generating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Share2 className="w-4 h-4 mr-2" />
-                Generate Invite Link
-              </>
-            )}
-          </Button>
-        ) : (
-          <div className="space-y-4">
-            <div className="p-2 sm:p-3 rounded-lg bg-muted border border-border">
-              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">Invite Link</p>
-              <p className="text-[11px] sm:text-sm font-mono break-all text-foreground">
-                {getInviteUrl()}
-              </p>
-            </div>
-
-            {qrDataUrl && (
-              <div className="p-3 sm:p-4 rounded-lg bg-card border border-border flex flex-col items-center gap-3">
-                <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 self-start">
-                  <QrCode className="w-3 h-3 shrink-0" />
-                  <span>Scan QR to join</span>
-                </p>
-                <img
-                  src={qrDataUrl}
-                  alt={`QR code to join ${householdName}`}
-                  className="w-44 h-44 sm:w-56 sm:h-56 rounded bg-white p-2"
-                />
-                <Button variant="outline" size="sm" onClick={downloadQr} className="w-full sm:w-auto">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download QR
-                </Button>
-                <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
-                  Recipient still needs the PIN to join.
-                </p>
-              </div>
-            )}
-            
-            
-            <div className="p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                    <KeyRound className="w-3 h-3 shrink-0" />
-                    <span className="truncate">PIN Code (share separately)</span>
-                  </p>
-                  <p className="text-lg sm:text-2xl font-mono font-bold tracking-widest text-primary">
-                    {invitePin}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={copyPinToClipboard}
-                  className="shrink-0"
+        {!method && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {availableMethods.map((m) => {
+              const Icon = m.icon;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setMethod(m.id)}
+                  className="flex items-start gap-3 p-3 rounded-lg border border-border bg-card hover:bg-accent hover:border-primary/40 transition-colors text-left"
                 >
-                  {pinCopied ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
+                  <div className="p-2 rounded-md bg-primary/10 text-primary shrink-0">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">{m.label}</p>
+                    <p className="text-xs text-muted-foreground">{m.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {method && (
+          <>
+            <Button variant="ghost" size="sm" onClick={reset} className="-ml-2">
+              <ArrowLeft className="w-4 h-4 mr-1" /> Choose another method
+            </Button>
+
+            {generating && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" /> Generating invite…
               </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyToClipboard}
-                className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3"
-              >
-                {copied ? (
+            )}
+
+            {!generating && inviteCode && (
+              <div className="space-y-4">
+                {method === 'link' && (
                   <>
-                    <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    <span className="hidden xs:inline">Copied!</span>
-                    <span className="xs:hidden">✓</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    <span>Copy</span>
+                    <div className="p-3 rounded-lg bg-muted border border-border">
+                      <p className="text-xs text-muted-foreground mb-1">Invite Link</p>
+                      <p className="text-sm font-mono break-all text-foreground">{inviteUrl}</p>
+                    </div>
+                    <Button onClick={copyLink} className="w-full">
+                      {copied ? (
+                        <><Check className="w-4 h-4 mr-2" /> Copied</>
+                      ) : (
+                        <><Copy className="w-4 h-4 mr-2" /> Copy Link</>
+                      )}
+                    </Button>
+                    <PinCard />
                   </>
                 )}
-              </Button>
-              
-              {typeof navigator.share === 'function' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={shareViaWebShare}
-                  className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3"
-                >
-                  <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                  Share
-                </Button>
-              )}
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={shareViaWhatsApp}
-                className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3 text-green-600 hover:text-green-700 hover:bg-green-50"
-              >
-                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                <span className="hidden xs:inline">WhatsApp</span>
-                <span className="xs:hidden">WA</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={shareViaEmail}
-                className="flex-1 min-w-[80px] sm:min-w-[120px] text-xs sm:text-sm px-2 sm:px-3"
-              >
-                <Mail className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                Email
-              </Button>
-            </div>
 
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
-              Link expires in 7 days. PIN required to join.
-            </p>
+                {method === 'qr' && (
+                  <>
+                    <div className="p-4 rounded-lg bg-card border border-border flex flex-col items-center gap-3">
+                      {qrDataUrl ? (
+                        <>
+                          <img
+                            src={qrDataUrl}
+                            alt={`QR code to join ${householdName}`}
+                            className="w-56 h-56 rounded bg-white p-2"
+                          />
+                          <Button variant="outline" size="sm" onClick={downloadQr}>
+                            <Download className="w-4 h-4 mr-2" /> Download QR
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="w-56 h-56 flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground text-center">
+                        Recipient scans, then enters the PIN below.
+                      </p>
+                    </div>
+                    <PinCard />
+                  </>
+                )}
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={generateInviteLink}
-              disabled={generating}
-            >
-              Generate New Link
-            </Button>
-          </div>
+                {method === 'whatsapp' && (
+                  <>
+                    <Button onClick={openWhatsApp} className="w-full bg-green-600 hover:bg-green-700 text-white">
+                      <MessageCircle className="w-4 h-4 mr-2" /> Open WhatsApp
+                    </Button>
+                    <PinCard />
+                  </>
+                )}
+
+                {method === 'email' && (
+                  <>
+                    <Button onClick={openEmail} className="w-full">
+                      <Mail className="w-4 h-4 mr-2" /> Open Email
+                    </Button>
+                    <PinCard />
+                  </>
+                )}
+
+                {method === 'share' && (
+                  <>
+                    <Button onClick={openDeviceShare} className="w-full">
+                      <Share2 className="w-4 h-4 mr-2" /> Share via Device
+                    </Button>
+                    <PinCard />
+                  </>
+                )}
+
+                <p className="text-xs text-muted-foreground">Link expires in 7 days.</p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
