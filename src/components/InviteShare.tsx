@@ -144,18 +144,29 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
   };
 
   const openDeviceShare = async () => {
-    if (typeof navigator.share !== 'function') {
-      copyLink();
-      return;
+    const shareData = {
+      title: `Join ${householdName}`,
+      text: inviteMessage(),
+      url: inviteUrl,
+    };
+    if (typeof navigator.share === 'function') {
+      try {
+        // @ts-ignore - canShare not in all TS libs
+        if (typeof navigator.canShare === 'function' && !navigator.canShare(shareData)) {
+          throw new Error('not-shareable');
+        }
+        await navigator.share(shareData);
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+        // Fall through to clipboard fallback
+      }
     }
     try {
-      await navigator.share({
-        title: `Join ${householdName}`,
-        text: inviteMessage(),
-        url: inviteUrl,
-      });
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') toast.error('Failed to share');
+      await navigator.clipboard.writeText(inviteMessage());
+      toast.success('Sharing unavailable here — invite copied to clipboard');
+    } catch {
+      toast.error('Sharing unavailable. Use Copy Link instead.');
     }
   };
 
