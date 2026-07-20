@@ -51,6 +51,9 @@ const Household = () => {
   const [newHouseholdName, setNewHouseholdName] = useState('');
   const [error, setError] = useState('');
   const [removing, setRemoving] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [savingName, setSavingName] = useState(false);
 
   const currentHousehold = households[0];
   const isOwner = !!currentHousehold && currentHousehold.owner_id === user?.id;
