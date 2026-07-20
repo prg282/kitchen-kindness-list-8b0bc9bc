@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Home, ArrowLeft, Plus, Check, Users, UserMinus, Crown } from 'lucide-react';
+import { Loader2, Home, ArrowLeft, Plus, Check, Users, UserMinus, Crown, Pencil, X as XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import InviteShare from '@/components/InviteShare';
@@ -51,6 +51,9 @@ const Household = () => {
   const [newHouseholdName, setNewHouseholdName] = useState('');
   const [error, setError] = useState('');
   const [removing, setRemoving] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [savingName, setSavingName] = useState(false);
 
   const currentHousehold = households[0];
   const isOwner = !!currentHousehold && currentHousehold.owner_id === user?.id;
@@ -197,6 +200,36 @@ const Household = () => {
     }
   };
 
+  const handleRenameHousehold = async () => {
+    if (!currentHousehold || !isOwner) return;
+    const validation = householdSchema.safeParse({ name: renameValue });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+    if (validation.data.name === currentHousehold.name) {
+      setRenaming(false);
+      return;
+    }
+    setSavingName(true);
+    try {
+      const { error } = await supabase
+        .from('households')
+        .update({ name: validation.data.name })
+        .eq('id', currentHousehold.id);
+      if (error) throw error;
+      setHouseholds((prev) => prev.map((h) => (h.id === currentHousehold.id ? { ...h, name: validation.data.name } : h)));
+      toast.success('Household renamed');
+      setRenaming(false);
+    } catch (err: any) {
+      console.error('Error renaming household:', err);
+      toast.error(err.message || 'Failed to rename household');
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+
 
 
   if (authLoading || loading) {
@@ -255,18 +288,58 @@ const Household = () => {
                 {households.map((household) => (
                   <div
                     key={household.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20"
+                    className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20"
                   >
-                    <div>
-                      <p className="font-medium text-foreground">{household.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      {renaming && isOwner ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            autoFocus
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleRenameHousehold();
+                              if (e.key === 'Escape') setRenaming(false);
+                            }}
+                            maxLength={100}
+                            className="h-9"
+                          />
+                          <Button size="sm" onClick={handleRenameHousehold} disabled={savingName}>
+                            {savingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setRenaming(false)} disabled={savingName}>
+                            <XIcon className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground truncate">{household.name}</p>
+                          {isOwner && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => {
+                                setRenameValue(household.name);
+                                setRenaming(true);
+                              }}
+                              aria-label="Rename household"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-1">
                         Created {new Date(household.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 text-primary">
-                      <Check className="w-5 h-5" />
-                      <span className="text-sm font-medium">Active</span>
-                    </div>
+                    {!renaming && (
+                      <div className="flex items-center gap-2 text-primary shrink-0">
+                        <Check className="w-5 h-5" />
+                        <span className="text-sm font-medium">Active</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
