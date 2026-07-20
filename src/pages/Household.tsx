@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Home, ArrowLeft, Plus, Check, Users, UserMinus, Crown } from 'lucide-react';
+import { Loader2, Home, ArrowLeft, Plus, Check, Users, UserMinus, Crown, Pencil, X as XIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import InviteShare from '@/components/InviteShare';
