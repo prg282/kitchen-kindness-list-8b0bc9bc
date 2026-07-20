@@ -288,18 +288,58 @@ const Household = () => {
                 {households.map((household) => (
                   <div
                     key={household.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20"
+                    className="flex items-center justify-between gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20"
                   >
-                    <div>
-                      <p className="font-medium text-foreground">{household.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      {renaming && isOwner ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            autoFocus
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') handleRenameHousehold();
+                              if (e.key === 'Escape') setRenaming(false);
+                            }}
+                            maxLength={100}
+                            className="h-9"
+                          />
+                          <Button size="sm" onClick={handleRenameHousehold} disabled={savingName}>
+                            {savingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setRenaming(false)} disabled={savingName}>
+                            <XIcon className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground truncate">{household.name}</p>
+                          {isOwner && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                              onClick={() => {
+                                setRenameValue(household.name);
+                                setRenaming(true);
+                              }}
+                              aria-label="Rename household"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-1">
                         Created {new Date(household.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 text-primary">
-                      <Check className="w-5 h-5" />
-                      <span className="text-sm font-medium">Active</span>
-                    </div>
+                    {!renaming && (
+                      <div className="flex items-center gap-2 text-primary shrink-0">
+                        <Check className="w-5 h-5" />
+                        <span className="text-sm font-medium">Active</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
