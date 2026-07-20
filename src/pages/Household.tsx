@@ -200,6 +200,36 @@ const Household = () => {
     }
   };
 
+  const handleRenameHousehold = async () => {
+    if (!currentHousehold || !isOwner) return;
+    const validation = householdSchema.safeParse({ name: renameValue });
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      return;
+    }
+    if (validation.data.name === currentHousehold.name) {
+      setRenaming(false);
+      return;
+    }
+    setSavingName(true);
+    try {
+      const { error } = await supabase
+        .from('households')
+        .update({ name: validation.data.name })
+        .eq('id', currentHousehold.id);
+      if (error) throw error;
+      setHouseholds((prev) => prev.map((h) => (h.id === currentHousehold.id ? { ...h, name: validation.data.name } : h)));
+      toast.success('Household renamed');
+      setRenaming(false);
+    } catch (err: any) {
+      console.error('Error renaming household:', err);
+      toast.error(err.message || 'Failed to rename household');
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+
 
 
   if (authLoading || loading) {
