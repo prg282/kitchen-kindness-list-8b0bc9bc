@@ -323,11 +323,6 @@ export type Database = {
         Returns: undefined
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
-      get_user_household: { Args: { _user_id: string }; Returns: string }
-      is_household_owner: {
-        Args: { _household_id: string; _user_id: string }
-        Returns: boolean
-      }
       remove_household_member: {
         Args: { _member_id: string }
         Returns: undefined
