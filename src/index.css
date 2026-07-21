@@ -98,11 +98,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
   }
 
   h1, h2, h3, h4 {
-    font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
     letter-spacing: -0.02em;
     font-weight: 600;
   }
