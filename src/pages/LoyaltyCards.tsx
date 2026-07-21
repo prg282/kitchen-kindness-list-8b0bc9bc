@@ -250,19 +250,21 @@ const LoyaltyCards = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="container py-6 flex items-center gap-3">
+        <div className="container py-5 flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="p-2.5 rounded-xl bg-primary/10">
-            <CreditCard className="w-7 h-7 text-primary" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-2xl sm:text-3xl font-display tracking-tight text-foreground">Wallet</h1>
+              <span className="text-sm text-muted-foreground font-mono">
+                {cards.length} {cards.length === 1 ? 'card' : 'cards'}
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-muted-foreground">Rewards shared with your household</p>
           </div>
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-serif text-foreground">Rewards Cards</h1>
-            <p className="text-sm text-muted-foreground">Loyalty cards shared with your household</p>
-          </div>
-          <Button onClick={openAdd}>
-            <Plus className="w-4 h-4 mr-2" /> Add Card
+          <Button onClick={openAdd} className="shadow-medium">
+            <Plus className="w-4 h-4 mr-2" /> Add
           </Button>
         </div>
 
@@ -273,21 +275,24 @@ const LoyaltyCards = () => {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search your cards..."
-                className="pl-9"
+                placeholder="Search cards or numbers…"
+                className="pl-9 h-10 rounded-full bg-muted/50 border-transparent focus-visible:bg-background"
               />
             </div>
             {categories.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
                 {categories.map((cat) => (
-                  <Badge
+                  <button
                     key={cat}
-                    variant={activeCategory === cat ? 'default' : 'secondary'}
-                    className="cursor-pointer whitespace-nowrap"
                     onClick={() => setActiveCategory(cat)}
+                    className={`whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full transition ${
+                      activeCategory === cat
+                        ? 'bg-primary text-primary-foreground shadow-soft'
+                        : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                    }`}
                   >
                     {cat}
-                  </Badge>
+                  </button>
                 ))}
               </div>
             )}
