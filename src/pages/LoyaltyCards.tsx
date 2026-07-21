@@ -370,47 +370,91 @@ const LoyaltyCards = () => {
         </DialogContent>
       </Dialog>
 
-      <main className="container py-6">
+      <main className="container py-8">
         {cards.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">
-            <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No rewards cards yet. Add your first one to get started.</p>
+          <div className="relative mx-auto max-w-md py-16 text-center">
+            {/* Decorative stacked card silhouettes */}
+            <div className="relative h-48 mb-8">
+              <div className="absolute inset-x-8 top-8 h-32 rounded-2xl bg-muted/60 rotate-[-6deg] shadow-soft" />
+              <div className="absolute inset-x-6 top-4 h-32 rounded-2xl bg-secondary/40 rotate-[-2deg] shadow-soft" />
+              <div className="absolute inset-x-4 top-0 h-32 rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-elevated flex items-center justify-center">
+                <CreditCard className="w-10 h-10 text-primary-foreground/90" />
+              </div>
+            </div>
+            <h2 className="text-xl font-display mb-2">Your wallet is empty</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Add loyalty cards once, scan them at any till. Everyone in your household can use them.
+            </p>
+            <Button onClick={openAdd} size="lg" className="shadow-medium">
+              <Plus className="w-4 h-4 mr-2" /> Add your first card
+            </Button>
           </div>
         ) : filteredCards.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
+            <Search className="w-10 h-10 mx-auto mb-3 opacity-40" />
             <p>No cards match your search.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCards.map((card) => (
-              <Card
-                key={card.id}
-                className="cursor-pointer overflow-hidden transition-transform hover:-translate-y-0.5"
-                onClick={() => setViewing(card)}
-              >
-                <div
-                  className="h-24 flex items-center justify-center p-3"
-                  style={{ background: card.brand_color || 'hsl(var(--primary))' }}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredCards.map((card) => {
+              const color = card.brand_color || '#8b7355';
+              return (
+                <button
+                  key={card.id}
+                  onClick={() => setViewing(card)}
+                  className="group relative text-left rounded-2xl overflow-hidden aspect-[1.586/1] shadow-medium hover:shadow-elevated transition-all duration-300 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  style={{
+                    background: `linear-gradient(135deg, ${color} 0%, ${color} 55%, rgba(0,0,0,0.35) 100%)`,
+                  }}
                 >
-                  <BrandLogo
-                    name={card.name}
-                    color={card.brand_color}
-                    className="w-20 h-16"
-                    textClassName="text-2xl"
-                    rounded="rounded-lg"
+                  {/* Shine overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-60 pointer-events-none" />
+                  {/* Dot pattern */}
+                  <div
+                    className="absolute inset-0 opacity-[0.08] pointer-events-none"
+                    style={{
+                      backgroundImage: 'radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1px)',
+                      backgroundSize: '14px 14px',
+                    }}
                   />
-                </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center justify-between text-lg">
-                    <span className="truncate">{card.name}</span>
-                    {card.photo_path && <ImageIcon className="w-4 h-4 text-muted-foreground" />}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                  {card.card_number ? <span className="font-mono">{card.card_number}</span> : <em>No card number</em>}
-                </CardContent>
-              </Card>
-            ))}
+                  {/* Content */}
+                  <div className="relative h-full p-5 flex flex-col justify-between text-white">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] uppercase tracking-[0.18em] opacity-70 font-medium">Rewards</p>
+                        <h3 className="font-display text-lg leading-tight mt-0.5 truncate drop-shadow-sm">
+                          {card.name}
+                        </h3>
+                      </div>
+                      <div className="shrink-0 rounded-lg bg-white/95 p-1.5 shadow-soft">
+                        <BrandLogo
+                          name={card.name}
+                          color={color}
+                          className="w-10 h-10"
+                          textClassName="text-sm"
+                          rounded="rounded-md"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-end justify-between gap-3">
+                      <div className="min-w-0">
+                        {/* EMV-style chip */}
+                        <div className="w-8 h-6 rounded-[4px] bg-gradient-to-br from-yellow-200/80 to-yellow-500/60 border border-white/20 mb-2 relative overflow-hidden">
+                          <div className="absolute inset-0.5 rounded-[3px] border border-yellow-800/30" />
+                        </div>
+                        <p className="font-mono text-sm tracking-wider truncate opacity-95">
+                          {card.card_number || card.barcode_value ? `•••• ${(card.card_number || card.barcode_value || '').slice(-4)}` : 'No number'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 opacity-80">
+                        {card.barcode_value && <ScanLine className="w-4 h-4" />}
+                        {card.photo_path && <ImageIcon className="w-4 h-4" />}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </main>
