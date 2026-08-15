@@ -454,6 +454,8 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       return;
     }
 
+    log('edited', newName);
+
     await saveKnownItem(newName, newCategory);
 
     // Persist notes as the default for this known item so it carries next time
@@ -487,8 +489,12 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       console.error('Error clearing checked items:', error);
       // Rollback
       setItems(prev => [...prev, ...checkedItems]);
+      return;
     }
+
+    log('cleared_checked');
   };
+
 
   // Search known items
   const searchKnownItems = (query: string): KnownItem[] => {
