@@ -374,10 +374,34 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       return;
     }
 
+    log(willBeChecked ? 'checked' : 'unchecked', item.name);
+
     if (willBeChecked) {
       // Fire-and-forget cycle tracking
       recordPurchase(item.name);
     }
+  };
+
+  // Assign an item to a household member (or clear the assignment)
+  const assignItem = async (id: string, memberId: string | null, memberName?: string | null) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, assigned_to: memberId } : i)));
+
+    const { error } = await withSync(supabase
+      .from('grocery_items')
+      .update({ assigned_to: memberId } as any)
+      .eq('id', id));
+
+    if (error) {
+      console.error('Error assigning item:', error);
+      toast.error('Failed to assign item');
+      setItems(prev => prev.map(i => (i.id === id ? item : i)));
+      return;
+    }
+
+    log(memberId ? 'assigned' : 'unassigned', item.name, memberName ?? null);
   };
 
   // Delete item
@@ -395,8 +419,12 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     if (error) {
       console.error('Error deleting item:', error);
       setItems(prev => [...prev, item]);
+      return;
     }
+
+    log('removed', item.name);
   };
+
 
   // Edit item
   const editItem = async (id: string, newName: string, newQuantity?: string, newNotes?: string) => {
