@@ -156,7 +156,43 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
           </span>
         )}
 
+        {!isEditing && onAssign && members.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                title={assignee ? `Assigned to ${memberLabel(assignee)}` : 'Assign to a member'}
+                className={cn(
+                  'flex items-center justify-center flex-shrink-0 rounded-full transition-all duration-200',
+                  assignee
+                    ? 'w-6 h-6 md:w-7 md:h-7 bg-primary/15 text-primary text-[10px] md:text-xs font-semibold'
+                    : 'p-1 md:p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-0 group-hover:opacity-100'
+                )}
+              >
+                {assignee ? memberInitials(assignee) : <UserPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-popover">
+              <DropdownMenuLabel>Assign to</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {members.map((m) => (
+                <DropdownMenuItem key={m.id} onClick={() => onAssign(item.id, m.id, memberLabel(m))}>
+                  {memberLabel(m)}
+                </DropdownMenuItem>
+              ))}
+              {assignee && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onAssign(item.id, null, memberLabel(assignee))}>
+                    Clear assignment
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         {!isEditing && (
+
           <div className="flex items-center gap-0.5 md:gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-all duration-200">
             {!item.checked && (
               <button
