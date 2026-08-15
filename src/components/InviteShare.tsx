@@ -278,6 +278,18 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {!online && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-muted border border-border text-xs text-muted-foreground">
+            <WifiOff className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              You’re offline.{' '}
+              {inviteCode
+                ? 'Your saved invite can still be shared — it stays valid for 7 days.'
+                : 'Sharing the app link still works; a new household invite needs a connection.'}
+            </span>
+          </div>
+        )}
+
         {!method && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {availableMethods.map((m) => {
@@ -307,13 +319,32 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
               <ArrowLeft className="w-4 h-4 mr-1" /> Choose another method
             </Button>
 
+            {method === 'app' && (
+              <div className="space-y-3">
+                <div className="p-3 rounded-lg bg-muted border border-border">
+                  <p className="text-xs text-muted-foreground mb-1">App Link</p>
+                  <p className="text-sm font-mono break-all text-foreground">{appUrl}</p>
+                </div>
+                <Button onClick={shareApp} className="w-full">
+                  <Share2 className="w-4 h-4 mr-2" /> Share the App
+                </Button>
+              </div>
+            )}
+
             {generating && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin" /> Generating invite…
               </div>
             )}
 
-            {!generating && inviteCode && (
+            {offlineBlocked && method !== 'app' && (
+              <p className="text-sm text-muted-foreground">
+                No saved invite is available offline. Reconnect to create one, or use “Share the App”.
+              </p>
+            )}
+
+            {!generating && inviteCode && method !== 'app' && (
+
               <div className="space-y-4">
                 {method === 'link' && (
                   <>
