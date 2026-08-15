@@ -218,11 +218,33 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
     }
   };
 
+  const appMessage = () =>
+    `Get our Grocery List app — shared shopping lists for your household:\n${appUrl}`;
+
+  const shareApp = async () => {
+    const shareData = { title: 'Grocery List', text: appMessage(), url: appUrl };
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(appMessage());
+      toast.success('App link copied to clipboard');
+    } catch {
+      toast.error('Could not copy the app link');
+    }
+  };
+
   const reset = () => {
     setMethod(null);
   };
 
   const availableMethods = METHODS.filter((m) => !m.guard || m.guard());
+
 
   const PinCard = () =>
     invitePin ? (
