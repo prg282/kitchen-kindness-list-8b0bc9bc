@@ -44,7 +44,10 @@ export function GroceryList() {
     moveItemToCategory,
     getReminders,
     dismissReminder,
+    assignItem,
   } = useGroceryList();
+  const { members } = useHouseholdMembers();
+
 
   const { profile, signOut } = useAuth();
   const { t } = useLanguage();
