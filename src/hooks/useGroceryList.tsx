@@ -241,6 +241,7 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       created_by: user.id,
       quantity,
       notes: resolvedNotes,
+      list_id: activeListId ?? null,
     };
     setItems(prev => [...prev, newItem]);
 
@@ -248,6 +249,7 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       .from('grocery_items')
       .insert({
         household_id: householdId,
+        list_id: activeListId ?? null,
         name,
         category,
         checked: false,
@@ -265,18 +267,12 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       return;
     }
 
-    setItems(prev => prev.map(i => i.id === tempId ? {
-      id: data.id,
-      name: data.name,
-      category: data.category as CategoryType,
-      checked: data.checked,
-      created_by: data.created_by || undefined,
-      quantity: data.quantity || undefined,
-      notes: (data as any).notes || undefined,
-    } : i));
+    setItems(prev => prev.map(i => i.id === tempId ? mapItem(data) : i));
+    log('added', name);
 
     await saveKnownItem(name, category);
   };
+
 
   // Save known item
   const saveKnownItem = async (name: string, category: CategoryType) => {
