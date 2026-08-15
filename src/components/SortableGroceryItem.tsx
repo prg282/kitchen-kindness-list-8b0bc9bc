@@ -54,7 +54,10 @@ export function SortableGroceryItem({ item, onToggle, onDelete, onEdit, members,
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          members={members}
+          onAssign={onAssign}
         />
+
       </div>
     </div>
   );
