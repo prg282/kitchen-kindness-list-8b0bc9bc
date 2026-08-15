@@ -92,8 +92,11 @@ export function CategorySection({ category, items, onToggle, onDelete, onEdit, m
                 onToggle={onToggle}
                 onDelete={onDelete}
                 onEdit={onEdit}
+                members={members}
+                onAssign={onAssign}
               />
             ))}
+
           </div>
         </SortableContext>
       )}
