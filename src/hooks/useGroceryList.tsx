@@ -174,39 +174,25 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
           
           if (payload.eventType === 'INSERT') {
             const newItem = payload.new as any;
+            if (activeListId && newItem.list_id && newItem.list_id !== activeListId) return;
             setItems(prev => {
               if (prev.some(i => i.id === newItem.id)) return prev;
-              return [...prev, {
-                id: newItem.id,
-                name: newItem.name,
-                category: newItem.category as CategoryType,
-                checked: newItem.checked,
-                created_by: newItem.created_by || undefined,
-                quantity: newItem.quantity || undefined,
-                sort_order: newItem.sort_order ?? 0,
-                notes: newItem.notes || undefined,
-              }];
+              return [...prev, mapItem(newItem)];
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedItem = payload.new as any;
+            if (activeListId && updatedItem.list_id && updatedItem.list_id !== activeListId) {
+              setItems(prev => prev.filter(i => i.id !== updatedItem.id));
+              return;
+            }
             setItems(prev => prev.map(item =>
-              item.id === updatedItem.id
-                ? {
-                    id: updatedItem.id,
-                    name: updatedItem.name,
-                    category: updatedItem.category as CategoryType,
-                    checked: updatedItem.checked,
-                    created_by: updatedItem.created_by || undefined,
-                    quantity: updatedItem.quantity || undefined,
-                    sort_order: updatedItem.sort_order ?? 0,
-                    notes: updatedItem.notes || undefined,
-                  }
-                : item
+              item.id === updatedItem.id ? mapItem(updatedItem) : item
             ));
           } else if (payload.eventType === 'DELETE') {
             const deletedItem = payload.old as any;
             setItems(prev => prev.filter(item => item.id !== deletedItem.id));
           }
+
         }
       )
       .subscribe();
