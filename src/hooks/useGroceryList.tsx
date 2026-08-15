@@ -4,6 +4,7 @@ import { useAuth } from './useAuth';
 import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groceryCategories';
 import { toast } from 'sonner';
 import { pingSync, pongSync } from '@/components/SyncStatus';
+import { logActivity } from '@/lib/activity';
 
 async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   pingSync();
@@ -18,23 +19,57 @@ async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   }
 }
 
-export function useGroceryList() {
+function mapItem(item: any): GroceryItem {
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category as CategoryType,
+    checked: item.checked,
+    created_by: item.created_by || undefined,
+    quantity: item.quantity || undefined,
+    sort_order: item.sort_order ?? 0,
+    notes: item.notes || undefined,
+    assigned_to: item.assigned_to ?? null,
+    list_id: item.list_id ?? null,
+  };
+}
+
+export function useGroceryList(activeListId?: string | null, activeListName?: string | null) {
   const { user, profile, loading: authLoading } = useAuth();
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [knownItems, setKnownItems] = useState<KnownItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const householdId = profile?.household_id;
+  const actorName = profile?.display_name || profile?.email || null;
+
+  const log = useCallback(
+    (action: Parameters<typeof logActivity>[0]['action'], itemName?: string | null, targetName?: string | null) => {
+      logActivity({
+        householdId,
+        actorId: user?.id,
+        actorName,
+        action,
+        itemName,
+        listName: activeListName,
+        targetName,
+      });
+    },
+    [householdId, user?.id, actorName, activeListName],
+  );
 
   // Fetch grocery items
   const fetchItems = useCallback(async () => {
     if (!householdId) return;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('grocery_items')
       .select('*')
-      .eq('household_id', householdId)
-      .order('created_at', { ascending: true });
+      .eq('household_id', householdId);
+
+    if (activeListId) query = query.eq('list_id', activeListId);
+
+    const { data, error } = await query.order('created_at', { ascending: true });
 
     if (error) {
       console.error('Error fetching items:', error);
@@ -42,21 +77,13 @@ export function useGroceryList() {
       return;
     }
 
-  setItems(
+    setItems(
       data
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-        .map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          category: item.category as CategoryType,
-          checked: item.checked,
-          created_by: item.created_by || undefined,
-          quantity: item.quantity || undefined,
-          sort_order: item.sort_order ?? 0,
-          notes: item.notes || undefined,
-        }))
+        .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map(mapItem)
     );
-  }, [householdId]);
+  }, [householdId, activeListId]);
+
 
   // Fetch known items
   const fetchKnownItems = useCallback(async () => {
