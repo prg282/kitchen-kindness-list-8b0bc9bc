@@ -9,6 +9,8 @@ import { SyncStatus } from './SyncStatus';
 import { RemindersBanner } from './RemindersBanner';
 import { CategoryType, categories, GroceryItem, KnownItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
+import { useHouseholdMembers } from '@/hooks/useHouseholdMembers';
+
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
