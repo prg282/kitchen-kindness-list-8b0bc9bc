@@ -200,7 +200,8 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [householdId]);
+  }, [householdId, activeListId]);
+
 
   // Add item
   const addItem = async (name: string, category: CategoryType, quantity?: string, notes?: string) => {
