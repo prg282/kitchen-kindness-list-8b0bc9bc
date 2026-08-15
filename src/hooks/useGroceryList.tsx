@@ -639,6 +639,8 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     loading,
     addItem,
     toggleItem,
+    assignItem,
+
     deleteItem,
     editItem,
     clearChecked,
