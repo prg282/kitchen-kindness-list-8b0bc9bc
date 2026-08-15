@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getCachedInvite, setCachedInvite } from '@/lib/inviteCache';
 import {
   Loader2,
   Share2,
@@ -15,6 +16,8 @@ import {
   Download,
   Link as LinkIcon,
   ArrowLeft,
+  WifiOff,
+  Smartphone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -24,7 +27,7 @@ interface InviteShareProps {
   userId: string;
 }
 
-type InviteMethod = 'link' | 'qr' | 'whatsapp' | 'email' | 'share';
+type InviteMethod = 'link' | 'qr' | 'whatsapp' | 'email' | 'share' | 'app';
 
 interface MethodDef {
   id: InviteMethod;
@@ -46,6 +49,7 @@ const METHODS: MethodDef[] = [
     icon: Share2,
     guard: () => typeof navigator !== 'undefined' && typeof navigator.share === 'function',
   },
+  { id: 'app', label: 'Share the App', description: 'Send someone the app link (works offline)', icon: Smartphone },
 ];
 
 const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) => {
@@ -56,11 +60,44 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
   const [copied, setCopied] = useState(false);
   const [pinCopied, setPinCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
+  const [offlineBlocked, setOfflineBlocked] = useState(false);
 
-  const inviteUrl = inviteCode ? `${window.location.origin}/join/${inviteCode}` : '';
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const inviteUrl = inviteCode ? `${appUrl}/join/${inviteCode}` : '';
+
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => {
+      window.removeEventListener('online', on);
+      window.removeEventListener('offline', off);
+    };
+  }, []);
+
+  // Load any cached invite so it can be shared without a connection.
+  useEffect(() => {
+    const cached = getCachedInvite(householdId);
+    if (cached) {
+      setInviteCode(cached.code);
+      setInvitePin(cached.pin);
+    }
+  }, [householdId]);
 
   const ensureInvite = async () => {
-    if (inviteCode) return { code: inviteCode, pin: invitePin! };
+    if (inviteCode && invitePin) return { code: inviteCode, pin: invitePin };
+    const cached = getCachedInvite(householdId);
+    if (cached) {
+      setInviteCode(cached.code);
+      setInvitePin(cached.pin);
+      return { code: cached.code, pin: cached.pin };
+    }
+    if (!navigator.onLine) {
+      setOfflineBlocked(true);
+      throw new Error('offline');
+    }
     setGenerating(true);
     try {
       const { data, error } = await supabase
@@ -71,6 +108,7 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
       if (error) throw error;
       setInviteCode(data.invite_code);
       setInvitePin(data.pin);
+      setCachedInvite(householdId, data.invite_code as string, data.pin as string);
       return { code: data.invite_code as string, pin: data.pin as string };
     } catch (err: any) {
       console.error('Error generating invite:', err);
@@ -81,9 +119,18 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
     }
   };
 
+  // Pre-generate an invite while online so it is ready to share offline later.
   useEffect(() => {
-    if (method && !inviteCode && !generating) {
-      ensureInvite().catch(() => setMethod(null));
+    if (!online || inviteCode || generating) return;
+    if (getCachedInvite(householdId)) return;
+    ensureInvite().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, householdId]);
+
+  useEffect(() => {
+    setOfflineBlocked(false);
+    if (method && method !== 'app' && !inviteCode && !generating) {
+      ensureInvite().catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [method]);
@@ -98,6 +145,7 @@ const InviteShare = ({ householdId, householdName, userId }: InviteShareProps) =
       .then(setQrDataUrl)
       .catch((err) => console.warn('QR generation failed:', err));
   }, [method, inviteCode]);
+
 
   const inviteMessage = () =>
     `Join my household "${householdName}" on our Grocery List app!\n\nClick here to join: ${inviteUrl}\n\nPIN: ${invitePin}`;
