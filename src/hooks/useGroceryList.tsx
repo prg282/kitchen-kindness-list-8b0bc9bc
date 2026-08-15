@@ -4,6 +4,7 @@ import { useAuth } from './useAuth';
 import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groceryCategories';
 import { toast } from 'sonner';
 import { pingSync, pongSync } from '@/components/SyncStatus';
+import { logActivity } from '@/lib/activity';
 
 async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   pingSync();
@@ -18,23 +19,57 @@ async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   }
 }
 
-export function useGroceryList() {
+function mapItem(item: any): GroceryItem {
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category as CategoryType,
+    checked: item.checked,
+    created_by: item.created_by || undefined,
+    quantity: item.quantity || undefined,
+    sort_order: item.sort_order ?? 0,
+    notes: item.notes || undefined,
+    assigned_to: item.assigned_to ?? null,
+    list_id: item.list_id ?? null,
+  };
+}
+
+export function useGroceryList(activeListId?: string | null, activeListName?: string | null) {
   const { user, profile, loading: authLoading } = useAuth();
   const [items, setItems] = useState<GroceryItem[]>([]);
   const [knownItems, setKnownItems] = useState<KnownItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const householdId = profile?.household_id;
+  const actorName = profile?.display_name || profile?.email || null;
+
+  const log = useCallback(
+    (action: Parameters<typeof logActivity>[0]['action'], itemName?: string | null, targetName?: string | null) => {
+      logActivity({
+        householdId,
+        actorId: user?.id,
+        actorName,
+        action,
+        itemName,
+        listName: activeListName,
+        targetName,
+      });
+    },
+    [householdId, user?.id, actorName, activeListName],
+  );
 
   // Fetch grocery items
   const fetchItems = useCallback(async () => {
     if (!householdId) return;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('grocery_items')
       .select('*')
-      .eq('household_id', householdId)
-      .order('created_at', { ascending: true });
+      .eq('household_id', householdId);
+
+    if (activeListId) query = query.eq('list_id', activeListId);
+
+    const { data, error } = await query.order('created_at', { ascending: true });
 
     if (error) {
       console.error('Error fetching items:', error);
@@ -42,21 +77,13 @@ export function useGroceryList() {
       return;
     }
 
-  setItems(
+    setItems(
       data
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-        .map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          category: item.category as CategoryType,
-          checked: item.checked,
-          created_by: item.created_by || undefined,
-          quantity: item.quantity || undefined,
-          sort_order: item.sort_order ?? 0,
-          notes: item.notes || undefined,
-        }))
+        .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map(mapItem)
     );
-  }, [householdId]);
+  }, [householdId, activeListId]);
+
 
   // Fetch known items
   const fetchKnownItems = useCallback(async () => {
@@ -147,39 +174,25 @@ export function useGroceryList() {
           
           if (payload.eventType === 'INSERT') {
             const newItem = payload.new as any;
+            if (activeListId && newItem.list_id && newItem.list_id !== activeListId) return;
             setItems(prev => {
               if (prev.some(i => i.id === newItem.id)) return prev;
-              return [...prev, {
-                id: newItem.id,
-                name: newItem.name,
-                category: newItem.category as CategoryType,
-                checked: newItem.checked,
-                created_by: newItem.created_by || undefined,
-                quantity: newItem.quantity || undefined,
-                sort_order: newItem.sort_order ?? 0,
-                notes: newItem.notes || undefined,
-              }];
+              return [...prev, mapItem(newItem)];
             });
           } else if (payload.eventType === 'UPDATE') {
             const updatedItem = payload.new as any;
+            if (activeListId && updatedItem.list_id && updatedItem.list_id !== activeListId) {
+              setItems(prev => prev.filter(i => i.id !== updatedItem.id));
+              return;
+            }
             setItems(prev => prev.map(item =>
-              item.id === updatedItem.id
-                ? {
-                    id: updatedItem.id,
-                    name: updatedItem.name,
-                    category: updatedItem.category as CategoryType,
-                    checked: updatedItem.checked,
-                    created_by: updatedItem.created_by || undefined,
-                    quantity: updatedItem.quantity || undefined,
-                    sort_order: updatedItem.sort_order ?? 0,
-                    notes: updatedItem.notes || undefined,
-                  }
-                : item
+              item.id === updatedItem.id ? mapItem(updatedItem) : item
             ));
           } else if (payload.eventType === 'DELETE') {
             const deletedItem = payload.old as any;
             setItems(prev => prev.filter(item => item.id !== deletedItem.id));
           }
+
         }
       )
       .subscribe();
@@ -187,7 +200,8 @@ export function useGroceryList() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [householdId]);
+  }, [householdId, activeListId]);
+
 
   // Add item
   const addItem = async (name: string, category: CategoryType, quantity?: string, notes?: string) => {
@@ -227,6 +241,7 @@ export function useGroceryList() {
       created_by: user.id,
       quantity,
       notes: resolvedNotes,
+      list_id: activeListId ?? null,
     };
     setItems(prev => [...prev, newItem]);
 
@@ -234,6 +249,7 @@ export function useGroceryList() {
       .from('grocery_items')
       .insert({
         household_id: householdId,
+        list_id: activeListId ?? null,
         name,
         category,
         checked: false,
@@ -251,18 +267,12 @@ export function useGroceryList() {
       return;
     }
 
-    setItems(prev => prev.map(i => i.id === tempId ? {
-      id: data.id,
-      name: data.name,
-      category: data.category as CategoryType,
-      checked: data.checked,
-      created_by: data.created_by || undefined,
-      quantity: data.quantity || undefined,
-      notes: (data as any).notes || undefined,
-    } : i));
+    setItems(prev => prev.map(i => i.id === tempId ? mapItem(data) : i));
+    log('added', name);
 
     await saveKnownItem(name, category);
   };
+
 
   // Save known item
   const saveKnownItem = async (name: string, category: CategoryType) => {
@@ -364,10 +374,34 @@ export function useGroceryList() {
       return;
     }
 
+    log(willBeChecked ? 'checked' : 'unchecked', item.name);
+
     if (willBeChecked) {
       // Fire-and-forget cycle tracking
       recordPurchase(item.name);
     }
+  };
+
+  // Assign an item to a household member (or clear the assignment)
+  const assignItem = async (id: string, memberId: string | null, memberName?: string | null) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, assigned_to: memberId } : i)));
+
+    const { error } = await withSync(supabase
+      .from('grocery_items')
+      .update({ assigned_to: memberId } as any)
+      .eq('id', id));
+
+    if (error) {
+      console.error('Error assigning item:', error);
+      toast.error('Failed to assign item');
+      setItems(prev => prev.map(i => (i.id === id ? item : i)));
+      return;
+    }
+
+    log(memberId ? 'assigned' : 'unassigned', item.name, memberName ?? null);
   };
 
   // Delete item
@@ -385,8 +419,12 @@ export function useGroceryList() {
     if (error) {
       console.error('Error deleting item:', error);
       setItems(prev => [...prev, item]);
+      return;
     }
+
+    log('removed', item.name);
   };
+
 
   // Edit item
   const editItem = async (id: string, newName: string, newQuantity?: string, newNotes?: string) => {
@@ -415,6 +453,8 @@ export function useGroceryList() {
       setItems(prev => prev.map(i => i.id === id ? item : i));
       return;
     }
+
+    log('edited', newName);
 
     await saveKnownItem(newName, newCategory);
 
@@ -449,8 +489,12 @@ export function useGroceryList() {
       console.error('Error clearing checked items:', error);
       // Rollback
       setItems(prev => [...prev, ...checkedItems]);
+      return;
     }
+
+    log('cleared_checked');
   };
+
 
   // Search known items
   const searchKnownItems = (query: string): KnownItem[] => {
@@ -595,6 +639,8 @@ export function useGroceryList() {
     loading,
     addItem,
     toggleItem,
+    assignItem,
+
     deleteItem,
     editItem,
     clearChecked,

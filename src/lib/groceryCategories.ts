@@ -18,7 +18,10 @@ export interface GroceryItem {
   quantity?: string;
   sort_order?: number;
   notes?: string;
+  assigned_to?: string | null;
+  list_id?: string | null;
 }
+
 
 export interface KnownItem {
   id: string;

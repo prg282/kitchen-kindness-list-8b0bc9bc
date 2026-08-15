@@ -9,6 +9,8 @@ import { SyncStatus } from './SyncStatus';
 import { RemindersBanner } from './RemindersBanner';
 import { CategoryType, categories, GroceryItem, KnownItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
+import { useHouseholdMembers } from '@/hooks/useHouseholdMembers';
+
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
@@ -44,7 +46,10 @@ export function GroceryList() {
     moveItemToCategory,
     getReminders,
     dismissReminder,
+    assignItem,
   } = useGroceryList();
+  const { members } = useHouseholdMembers();
+
 
   const { profile, signOut } = useAuth();
   const { t } = useLanguage();
@@ -318,7 +323,10 @@ export function GroceryList() {
                   onToggle={toggleItem}
                   onDelete={deleteItem}
                   onEdit={editItem}
+                  members={members}
+                  onAssign={assignItem}
                 />
+
               ))}
             </div>
 

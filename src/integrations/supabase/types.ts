@@ -14,14 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          household_id: string
+          id: string
+          item_name: string | null
+          list_name: string | null
+          target_name: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          household_id: string
+          id?: string
+          item_name?: string | null
+          list_name?: string | null
+          target_name?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          household_id?: string
+          id?: string
+          item_name?: string | null
+          list_name?: string | null
+          target_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_events_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grocery_items: {
         Row: {
+          assigned_to: string | null
           category: string
           checked: boolean
           created_at: string
           created_by: string | null
           household_id: string
           id: string
+          list_id: string | null
           name: string
           notes: string | null
           quantity: string | null
@@ -29,12 +75,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           category?: string
           checked?: boolean
           created_at?: string
           created_by?: string | null
           household_id: string
           id?: string
+          list_id?: string | null
           name: string
           notes?: string | null
           quantity?: string | null
@@ -42,12 +90,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           category?: string
           checked?: boolean
           created_at?: string
           created_by?: string | null
           household_id?: string
           id?: string
+          list_id?: string | null
           name?: string
           notes?: string | null
           quantity?: string | null
@@ -56,7 +106,68 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "grocery_items_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "grocery_items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grocery_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "grocery_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grocery_lists: {
+        Row: {
+          color: string | null
+          created_at: string
+          created_by: string | null
+          household_id: string
+          icon: string
+          id: string
+          is_default: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          icon?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          icon?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grocery_lists_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"

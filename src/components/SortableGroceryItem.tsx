@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 import { GroceryItemComponent } from './GroceryItem';
 import { GroceryItem } from '@/lib/groceryCategories';
+import { HouseholdMember } from '@/hooks/useHouseholdMembers';
 import { cn } from '@/lib/utils';
 
 interface SortableGroceryItemProps {
@@ -10,9 +11,12 @@ interface SortableGroceryItemProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newName: string, newQuantity?: string, newNotes?: string) => void;
+  members?: HouseholdMember[];
+  onAssign?: (id: string, memberId: string | null, memberName?: string | null) => void;
 }
 
-export function SortableGroceryItem({ item, onToggle, onDelete, onEdit }: SortableGroceryItemProps) {
+export function SortableGroceryItem({ item, onToggle, onDelete, onEdit, members, onAssign }: SortableGroceryItemProps) {
+
   const {
     attributes,
     listeners,
@@ -50,7 +54,10 @@ export function SortableGroceryItem({ item, onToggle, onDelete, onEdit }: Sortab
           onToggle={onToggle}
           onDelete={onDelete}
           onEdit={onEdit}
+          members={members}
+          onAssign={onAssign}
         />
+
       </div>
     </div>
   );
