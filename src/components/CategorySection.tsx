@@ -15,9 +15,12 @@ interface CategorySectionProps {
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, newName: string, newQuantity?: string, newNotes?: string) => void;
+  members?: import('@/hooks/useHouseholdMembers').HouseholdMember[];
+  onAssign?: (id: string, memberId: string | null, memberName?: string | null) => void;
 }
 
-export function CategorySection({ category, items, onToggle, onDelete, onEdit }: CategorySectionProps) {
+export function CategorySection({ category, items, onToggle, onDelete, onEdit, members, onAssign }: CategorySectionProps) {
+
   const [isExpanded, setIsExpanded] = useState(true);
   const categoryInfo = getCategoryInfo(category);
   const { t } = useLanguage();
