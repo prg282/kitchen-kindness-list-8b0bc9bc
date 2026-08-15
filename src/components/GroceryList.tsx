@@ -323,7 +323,10 @@ export function GroceryList() {
                   onToggle={toggleItem}
                   onDelete={deleteItem}
                   onEdit={editItem}
+                  members={members}
+                  onAssign={assignItem}
                 />
+
               ))}
             </div>
 
