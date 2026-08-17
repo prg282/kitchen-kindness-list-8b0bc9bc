@@ -9,7 +9,11 @@ import { SyncStatus } from './SyncStatus';
 import { RemindersBanner } from './RemindersBanner';
 import { CategoryType, categories, GroceryItem, KnownItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
+import { useGroceryLists } from '@/hooks/useGroceryLists';
 import { useHouseholdMembers } from '@/hooks/useHouseholdMembers';
+import { ListSwitcher } from './ListSwitcher';
+import { ActivityFeedSheet } from './ActivityFeedSheet';
+
 
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
