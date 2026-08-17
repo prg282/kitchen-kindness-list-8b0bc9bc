@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groceryCategories';
 import { toast } from 'sonner';
 import { pingSync, pongSync } from '@/components/SyncStatus';
 import { logActivity } from '@/lib/activity';
+import { readSnapshot, writeSnapshot, isOffline } from '@/lib/offlineCache';
+
 
 async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   pingSync();
