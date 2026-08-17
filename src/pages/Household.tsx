@@ -271,7 +271,9 @@ const Household = () => {
       </header>
 
       <main className="container py-6 space-y-6">
-        {/* Current Household */}
+        <ProfileNameCard />
+
+
         {households.length > 0 && (
           <Card>
             <CardHeader>
