@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groceryCategories';
 import { toast } from 'sonner';
 import { pingSync, pongSync } from '@/components/SyncStatus';
 import { logActivity } from '@/lib/activity';
+import { readSnapshot, writeSnapshot, isOffline } from '@/lib/offlineCache';
+
 
 async function withSync<T>(p: PromiseLike<T>): Promise<T> {
   pingSync();
@@ -58,6 +60,10 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     [householdId, user?.id, actorName, activeListName],
   );
 
+  const itemsKey = householdId ? `items:${householdId}:${activeListId ?? 'all'}` : null;
+  const knownKey = householdId ? `known:${householdId}` : null;
+  const offlineNoticeShown = useRef(false);
+
   // Fetch grocery items
   const fetchItems = useCallback(async () => {
     if (!householdId) return;
@@ -73,16 +79,23 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
 
     if (error) {
       console.error('Error fetching items:', error);
-      toast.error('Failed to load grocery items');
+      // Offline is an expected state — we already render the cached snapshot.
+      if (!isOffline()) {
+        toast.error('Failed to load grocery items');
+      } else if (!offlineNoticeShown.current) {
+        offlineNoticeShown.current = true;
+        toast.info('Offline — showing your saved list');
+      }
       return;
     }
 
-    setItems(
-      data
-        .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-        .map(mapItem)
-    );
-  }, [householdId, activeListId]);
+    offlineNoticeShown.current = false;
+    const mapped = data
+      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map(mapItem);
+    setItems(mapped);
+    if (itemsKey) writeSnapshot(itemsKey, mapped);
+  }, [householdId, activeListId, itemsKey]);
 
 
   // Fetch known items
@@ -100,19 +113,31 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       return;
     }
 
-    setKnownItems(
-      data.map((item: any) => ({
-        id: item.id,
-        name: item.name,
-        category: item.category as CategoryType,
-        usage_count: item.usage_count,
-        last_used: item.last_used,
-        notes: item.notes || undefined,
-        avg_days_between: item.avg_days_between ?? null,
-        last_purchased_at: item.last_purchased_at ?? null,
-      }))
-    );
-  }, [householdId]);
+    const mapped = data.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category as CategoryType,
+      usage_count: item.usage_count,
+      last_used: item.last_used,
+      notes: item.notes || undefined,
+      avg_days_between: item.avg_days_between ?? null,
+      last_purchased_at: item.last_purchased_at ?? null,
+    }));
+    setKnownItems(mapped);
+    if (knownKey) writeSnapshot(knownKey, mapped);
+  }, [householdId, knownKey]);
+
+  // Hydrate instantly from the local snapshot (works with zero network).
+  useEffect(() => {
+    if (!itemsKey || !knownKey) return;
+    const cachedItems = readSnapshot<GroceryItem[]>(itemsKey);
+    const cachedKnown = readSnapshot<KnownItem[]>(knownKey);
+    if (cachedItems) {
+      setItems(cachedItems);
+      setLoading(false);
+    }
+    if (cachedKnown) setKnownItems(cachedKnown);
+  }, [itemsKey, knownKey]);
 
   // Initial fetch + loading state management
   useEffect(() => {
@@ -135,25 +160,42 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       return;
     }
 
-    setLoading(true);
+    // Only show the skeleton when we have nothing cached to render.
+    if (!(itemsKey && readSnapshot<GroceryItem[]>(itemsKey))) setLoading(true);
     Promise.all([fetchItems(), fetchKnownItems()]).finally(() => {
       setLoading(false);
     });
-  }, [authLoading, user, householdId, fetchItems, fetchKnownItems]);
+  }, [authLoading, user, householdId, itemsKey, fetchItems, fetchKnownItems]);
 
-  // When the browser comes back online, refetch so any queued writes that just
-  // replayed are reflected and the UI converges with the server.
+  // Keep the offline snapshot in sync with optimistic local state so a reload
+  // while offline shows exactly what the user last saw.
   useEffect(() => {
-    const onOnline = () => {
-      if (!householdId) return;
+    if (!itemsKey || loading) return;
+    writeSnapshot(itemsKey, items);
+  }, [items, itemsKey, loading]);
+
+  // Refetch when the browser reconnects or the tab becomes visible again so
+  // queued writes that just replayed are reflected and the UI converges.
+  useEffect(() => {
+    if (!householdId) return;
+    const refresh = () => {
+      if (isOffline()) return;
       pingSync();
       Promise.all([fetchItems(), fetchKnownItems()]).finally(() => pongSync());
     };
-    window.addEventListener('online', onOnline);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    window.addEventListener('online', refresh);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      window.removeEventListener('online', onOnline);
+      window.removeEventListener('online', refresh);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [householdId, fetchItems, fetchKnownItems]);
+
 
   // Subscribe to realtime updates
   useEffect(() => {
