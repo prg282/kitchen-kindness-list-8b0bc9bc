@@ -36,6 +36,16 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 export function GroceryList() {
   const navigate = useNavigate();
   const {
+    lists,
+    activeList,
+    activeListId,
+    loadingLists,
+    selectList,
+    createList,
+    renameList,
+    deleteList,
+  } = useGroceryLists();
+  const {
     items,
     loading,
     addItem,
@@ -51,8 +61,9 @@ export function GroceryList() {
     getReminders,
     dismissReminder,
     assignItem,
-  } = useGroceryList();
+  } = useGroceryList(activeListId, activeList?.name ?? null);
   const { members } = useHouseholdMembers();
+
 
 
   const { profile, signOut } = useAuth();
