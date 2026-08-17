@@ -9,7 +9,11 @@ import { SyncStatus } from './SyncStatus';
 import { RemindersBanner } from './RemindersBanner';
 import { CategoryType, categories, GroceryItem, KnownItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
+import { useGroceryLists } from '@/hooks/useGroceryLists';
 import { useHouseholdMembers } from '@/hooks/useHouseholdMembers';
+import { ListSwitcher } from './ListSwitcher';
+import { ActivityFeedSheet } from './ActivityFeedSheet';
+
 
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -32,6 +36,16 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 export function GroceryList() {
   const navigate = useNavigate();
   const {
+    lists,
+    activeList,
+    activeListId,
+    loadingLists,
+    selectList,
+    createList,
+    renameList,
+    deleteList,
+  } = useGroceryLists();
+  const {
     items,
     loading,
     addItem,
@@ -47,8 +61,9 @@ export function GroceryList() {
     getReminders,
     dismissReminder,
     assignItem,
-  } = useGroceryList();
+  } = useGroceryList(activeListId, activeList?.name ?? null);
   const { members } = useHouseholdMembers();
+
 
 
   const { profile, signOut } = useAuth();
@@ -165,7 +180,7 @@ export function GroceryList() {
     }
   };
 
-  if (loading) {
+  if (loading || loadingLists) {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-10 bg-background/75 backdrop-blur-xl border-b border-border/40">
@@ -218,7 +233,9 @@ export function GroceryList() {
                   <span className="hidden sm:inline">{t('app.clearChecked')}</span>
                 </button>
               )}
+              <ActivityFeedSheet />
               <Button
+
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/cards')}
@@ -275,7 +292,17 @@ export function GroceryList() {
             </div>
           )}
 
+          <ListSwitcher
+            lists={lists}
+            activeListId={activeListId}
+            onSelect={selectList}
+            onCreate={createList}
+            onRename={renameList}
+            onDelete={deleteList}
+          />
+
           <GroceryInput
+
             onAddItem={addItem}
             searchKnownItems={searchKnownItems}
             getFrequentItems={getFrequentItems}
