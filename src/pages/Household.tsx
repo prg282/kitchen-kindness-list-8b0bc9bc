@@ -10,6 +10,8 @@ import { Loader2, Home, ArrowLeft, Plus, Check, Users, UserMinus, Crown, Pencil,
 import { toast } from 'sonner';
 import { z } from 'zod';
 import InviteShare from '@/components/InviteShare';
+import ProfileNameCard from '@/components/ProfileNameCard';
+
 import {
   AlertDialog,
   AlertDialogAction,
