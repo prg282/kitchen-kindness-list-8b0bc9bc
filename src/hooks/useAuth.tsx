@@ -110,8 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
-  return (
   const refreshProfile = async () => {
+
     if (user?.id) await fetchProfile(user.id);
   };
 
