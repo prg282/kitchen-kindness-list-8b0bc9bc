@@ -472,29 +472,42 @@ const LoyaltyCards = () => {
 
       {/* Card detail dialog */}
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md overflow-hidden p-0">
           {viewing && (
             <>
-              <DialogHeader>
-                <DialogTitle>{viewing.name}</DialogTitle>
-                <DialogDescription>
-                  Show this barcode at the till to scan.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
+              <div
+                className="p-5 text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${viewing.brand_color || '#8b7355'} 0%, rgba(0,0,0,0.45) 160%)`,
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-white/95 p-1.5 shadow-soft ring-1 ring-black/5">
+                    <BrandLogo name={viewing.name} color={viewing.brand_color} className="w-10 h-10" rounded="rounded-lg" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-white text-lg leading-tight truncate">{viewing.name}</DialogTitle>
+                    <DialogDescription className="text-white/75 text-xs">
+                      {viewing.barcode_value ? 'Show this barcode at the till' : 'Card details'}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4 px-5 pt-4">
                 {viewing.barcode_value && (
                   <button
                     type="button"
                     onClick={() => setFullscreenCard(viewing)}
-                    className="w-full rounded-lg bg-white p-4 hover:ring-2 hover:ring-primary transition relative group"
+                    className="w-full rounded-xl bg-white p-4 ring-1 ring-border hover:ring-2 hover:ring-primary transition relative group"
                   >
                     <BarcodeDisplay value={viewing.barcode_value} format={viewing.barcode_format} />
-                    <p className="text-center text-xs font-mono text-black mt-2">{viewing.barcode_value}</p>
-                    <span className="absolute top-2 right-2 bg-black/60 text-primary-foreground text-xs px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <p className="text-center text-xs font-mono text-black mt-2 tracking-widest">{viewing.barcode_value}</p>
+                    <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                       <Maximize2 className="w-3 h-3" /> Fullscreen
                     </span>
                   </button>
                 )}
+
                 {viewing.card_number && (
                   <div className="rounded-lg border border-border p-3 text-center">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Card number</p>
