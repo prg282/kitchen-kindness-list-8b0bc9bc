@@ -398,92 +398,116 @@ const LoyaltyCards = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCards.map((card) => {
               const color = card.brand_color || '#8b7355';
+              const digits = card.card_number || card.barcode_value || '';
               return (
                 <button
                   key={card.id}
                   onClick={() => setViewing(card)}
-                  className="group relative text-left rounded-2xl overflow-hidden aspect-[1.586/1] shadow-medium hover:shadow-elevated transition-all duration-300 hover:-translate-y-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  style={{
-                    background: `linear-gradient(135deg, ${color} 0%, ${color} 55%, rgba(0,0,0,0.35) 100%)`,
-                  }}
+                  className="group relative text-left rounded-[1.4rem] overflow-hidden aspect-[1.586/1] shadow-medium hover:shadow-elevated transition-all duration-300 hover:-translate-y-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  style={{ background: color }}
                 >
-                  {/* Shine overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-60 pointer-events-none" />
-                  {/* Dot pattern */}
+                  {/* Depth + brand mesh */}
                   <div
-                    className="absolute inset-0 opacity-[0.08] pointer-events-none"
+                    className="absolute inset-0 pointer-events-none"
                     style={{
-                      backgroundImage: 'radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1px)',
-                      backgroundSize: '14px 14px',
+                      background:
+                        'radial-gradient(120% 90% at 12% 8%, rgba(255,255,255,0.32) 0%, rgba(255,255,255,0) 55%), radial-gradient(100% 80% at 100% 100%, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 60%)',
                     }}
                   />
-                  {/* Content */}
+                  {/* Diagonal sheen that sweeps on hover */}
+                  <div className="absolute -inset-y-8 -left-1/3 w-1/3 rotate-12 bg-white/20 blur-md opacity-0 group-hover:opacity-100 group-hover:translate-x-[320%] transition-all duration-700 ease-out pointer-events-none" />
+
                   <div className="relative h-full p-5 flex flex-col justify-between text-white">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-[10px] uppercase tracking-[0.18em] opacity-70 font-medium">Rewards</p>
-                        <h3 className="font-display text-lg leading-tight mt-0.5 truncate drop-shadow-sm">
+                        <p className="text-[10px] uppercase tracking-[0.22em] opacity-70 font-medium">Rewards</p>
+                        <h3 className="font-display text-lg leading-tight mt-1 line-clamp-2 drop-shadow-sm">
                           {card.name}
                         </h3>
                       </div>
-                      <div className="shrink-0 rounded-lg bg-white/95 p-1.5 shadow-soft">
+                      <div className="shrink-0 rounded-xl bg-white/95 p-1.5 shadow-soft ring-1 ring-black/5">
                         <BrandLogo
                           name={card.name}
                           color={color}
                           className="w-10 h-10"
                           textClassName="text-sm"
-                          rounded="rounded-md"
+                          rounded="rounded-lg"
                         />
                       </div>
                     </div>
+
                     <div className="flex items-end justify-between gap-3">
                       <div className="min-w-0">
-                        {/* EMV-style chip */}
-                        <div className="w-8 h-6 rounded-[4px] bg-gradient-to-br from-yellow-200/80 to-yellow-500/60 border border-white/20 mb-2 relative overflow-hidden">
-                          <div className="absolute inset-0.5 rounded-[3px] border border-yellow-800/30" />
-                        </div>
-                        <p className="font-mono text-sm tracking-wider truncate opacity-95">
-                          {card.card_number || card.barcode_value ? `•••• ${(card.card_number || card.barcode_value || '').slice(-4)}` : 'No number'}
+                        <p className="text-[9px] uppercase tracking-[0.2em] opacity-60 mb-1">Card</p>
+                        <p className="font-mono text-base tracking-[0.14em] truncate opacity-95">
+                          {digits ? `•••• ${digits.slice(-4)}` : '—'}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1.5 opacity-80">
-                        {card.barcode_value && <ScanLine className="w-4 h-4" />}
-                        {card.photo_path && <ImageIcon className="w-4 h-4" />}
+                      <div className="flex items-center gap-1.5">
+                        {card.barcode_value && (
+                          <span className="rounded-full bg-white/15 backdrop-blur-sm p-1.5">
+                            <ScanLine className="w-3.5 h-3.5" />
+                          </span>
+                        )}
+                        {card.photo_path && (
+                          <span className="rounded-full bg-white/15 backdrop-blur-sm p-1.5">
+                            <ImageIcon className="w-3.5 h-3.5" />
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
+
+                  {/* Hover hint */}
+                  <span className="absolute inset-x-0 bottom-0 py-2 text-center text-[11px] font-medium tracking-wide text-white bg-black/35 backdrop-blur-sm translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    {card.barcode_value ? 'Tap to show at till' : 'Tap to view details'}
+                  </span>
                 </button>
               );
             })}
           </div>
         )}
+
       </main>
 
       {/* Card detail dialog */}
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md overflow-hidden p-0">
           {viewing && (
             <>
-              <DialogHeader>
-                <DialogTitle>{viewing.name}</DialogTitle>
-                <DialogDescription>
-                  Show this barcode at the till to scan.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
+              <div
+                className="p-5 text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${viewing.brand_color || '#8b7355'} 0%, rgba(0,0,0,0.45) 160%)`,
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-white/95 p-1.5 shadow-soft ring-1 ring-black/5">
+                    <BrandLogo name={viewing.name} color={viewing.brand_color} className="w-10 h-10" rounded="rounded-lg" />
+                  </div>
+                  <div className="min-w-0">
+                    <DialogTitle className="text-white text-lg leading-tight truncate">{viewing.name}</DialogTitle>
+                    <DialogDescription className="text-white/75 text-xs">
+                      {viewing.barcode_value ? 'Show this barcode at the till' : 'Card details'}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4 px-5 pt-4">
                 {viewing.barcode_value && (
                   <button
                     type="button"
                     onClick={() => setFullscreenCard(viewing)}
-                    className="w-full rounded-lg bg-white p-4 hover:ring-2 hover:ring-primary transition relative group"
+                    className="w-full rounded-xl bg-white p-4 ring-1 ring-border hover:ring-2 hover:ring-primary transition relative group"
                   >
                     <BarcodeDisplay value={viewing.barcode_value} format={viewing.barcode_format} />
-                    <p className="text-center text-xs font-mono text-black mt-2">{viewing.barcode_value}</p>
-                    <span className="absolute top-2 right-2 bg-black/60 text-primary-foreground text-xs px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <p className="text-center text-xs font-mono text-black mt-2 tracking-widest">{viewing.barcode_value}</p>
+                    <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                       <Maximize2 className="w-3 h-3" /> Fullscreen
                     </span>
                   </button>
                 )}
+
                 {viewing.card_number && (
                   <div className="rounded-lg border border-border p-3 text-center">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Card number</p>
