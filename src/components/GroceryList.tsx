@@ -6,6 +6,7 @@ import { CategorySection } from './CategorySection';
 import { GroceryItemComponent } from './GroceryItem';
 import { GroceryListSkeleton } from './GroceryListSkeleton';
 import { SyncStatus } from './SyncStatus';
+import { SyncBanner } from './SyncBanner';
 import { RemindersBanner } from './RemindersBanner';
 import { CategoryType, categories, GroceryItem, KnownItem } from '@/lib/groceryCategories';
 import { useGroceryList } from '@/hooks/useGroceryList';
@@ -313,6 +314,7 @@ export function GroceryList() {
 
       {/* Content */}
       <main className="container py-4 md:py-6">
+        <SyncBanner />
         <RemindersBanner
           reminders={reminders}
           onAdd={handleAddFromReminder}
