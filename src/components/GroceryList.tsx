@@ -326,7 +326,7 @@ export function GroceryList() {
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 md:py-24 text-center">
-            <EmptyBasketIllustration className="w-52 h-44 md:w-64 md:h-52 mb-4 animate-fade-in" />
+            <EmptyBasketIllustration className="w-52 h-44 md:w-64 md:h-52 mb-4 animate-fade-in-up" />
             <h2 className="text-lg md:text-xl font-display text-foreground mb-2">{t('empty.title')}</h2>
             <p className="text-sm md:text-base text-muted-foreground max-w-sm">
               {t('empty.description')}
