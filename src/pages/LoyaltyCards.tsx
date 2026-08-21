@@ -509,9 +509,9 @@ const LoyaltyCards = () => {
                 )}
 
                 {viewing.card_number && (
-                  <div className="rounded-lg border border-border p-3 text-center">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Card number</p>
-                    <p className="text-xl font-mono">{viewing.card_number}</p>
+                  <div className="rounded-xl bg-muted/50 border border-border/60 p-3 text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-[0.18em] mb-1">Card number</p>
+                    <p className="text-xl font-mono tracking-widest">{viewing.card_number}</p>
                   </div>
                 )}
                 {!viewing.barcode_value && !viewing.card_number && (
@@ -521,31 +521,34 @@ const LoyaltyCards = () => {
                   <img
                     src={viewingPhotoUrl}
                     alt={viewing.name}
-                    className="w-full rounded-lg border border-border"
+                    className="w-full rounded-xl border border-border"
                   />
                 )}
                 {viewing.notes && (
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{viewing.notes}</p>
                 )}
               </div>
-              <DialogFooter className="flex-wrap gap-2">
-                <Button variant="destructive" onClick={() => handleDelete(viewing)}>
-                  <Trash2 className="w-4 h-4 mr-2" /> Delete
-                </Button>
-                <Button variant="outline" onClick={() => openEdit(viewing)}>
-                  <Pencil className="w-4 h-4 mr-2" /> Edit
-                </Button>
-                {(viewing.barcode_value || viewing.card_number) && (
-                  <Button variant="outline" onClick={() => setPrintingCard(viewing)}>
-                    <Printer className="w-4 h-4 mr-2" /> Print
+              <DialogFooter className="flex-wrap gap-2 px-5 pb-5 pt-4 sm:justify-between">
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="icon" aria-label="Delete card" onClick={() => handleDelete(viewing)}>
+                    <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
-                )}
+                  <Button variant="ghost" size="icon" aria-label="Edit card" onClick={() => openEdit(viewing)}>
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  {(viewing.barcode_value || viewing.card_number) && (
+                    <Button variant="ghost" size="icon" aria-label="Print card" onClick={() => setPrintingCard(viewing)}>
+                      <Printer className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
                 {viewing.barcode_value && (
-                  <Button onClick={() => setFullscreenCard(viewing)}>
+                  <Button className="shadow-medium" onClick={() => setFullscreenCard(viewing)}>
                     <Maximize2 className="w-4 h-4 mr-2" /> Show at till
                   </Button>
                 )}
               </DialogFooter>
+
             </>
           )}
         </DialogContent>
