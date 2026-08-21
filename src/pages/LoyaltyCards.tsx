@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { EmptyWalletIllustration } from '@/components/illustrations/EmptyBasket';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -374,13 +375,7 @@ const LoyaltyCards = () => {
         {cards.length === 0 ? (
           <div className="relative mx-auto max-w-md py-16 text-center">
             {/* Decorative stacked card silhouettes */}
-            <div className="relative h-48 mb-8">
-              <div className="absolute inset-x-8 top-8 h-32 rounded-2xl bg-muted/60 rotate-[-6deg] shadow-soft" />
-              <div className="absolute inset-x-6 top-4 h-32 rounded-2xl bg-secondary/40 rotate-[-2deg] shadow-soft" />
-              <div className="absolute inset-x-4 top-0 h-32 rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-elevated flex items-center justify-center">
-                <CreditCard className="w-10 h-10 text-primary-foreground/90" />
-              </div>
-            </div>
+            <EmptyWalletIllustration className="w-full max-w-xs h-48 mx-auto mb-6" />
             <h2 className="text-xl font-display mb-2">Your wallet is empty</h2>
             <p className="text-sm text-muted-foreground mb-6">
               Add loyalty cards once, scan them at any till. Everyone in your household can use them.
