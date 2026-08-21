@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Check, X, Pencil, StickyNote, UserPlus } from 'lucide-react';
 import { GroceryItem as GroceryItemType, getCategoryInfo } from '@/lib/groceryCategories';
 import { cn } from '@/lib/utils';
+import { haptic } from '@/lib/haptics';
 import { HouseholdMember, memberInitials, memberLabel } from '@/hooks/useHouseholdMembers';
 import {
   DropdownMenu,
@@ -95,7 +96,10 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
     >
       <div className="flex items-center gap-2 md:gap-3">
         <button
-          onClick={() => onToggle(item.id)}
+          onClick={() => {
+            haptic(item.checked ? 'light' : 'success');
+            onToggle(item.id);
+          }}
           className={cn(
             "flex items-center justify-center w-5 h-5 md:w-7 md:h-7 rounded-full border-2 transition-all duration-200 flex-shrink-0",
             item.checked

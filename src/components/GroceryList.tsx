@@ -14,6 +14,8 @@ import { useGroceryLists } from '@/hooks/useGroceryLists';
 import { useHouseholdMembers } from '@/hooks/useHouseholdMembers';
 import { ListSwitcher } from './ListSwitcher';
 import { ActivityFeedSheet } from './ActivityFeedSheet';
+import { ThemeToggle } from './ThemeToggle';
+import { EmptyBasketIllustration } from './illustrations/EmptyBasket';
 
 
 import { useAuth } from '@/hooks/useAuth';
@@ -235,6 +237,7 @@ export function GroceryList() {
                 </button>
               )}
               <ActivityFeedSheet />
+              <ThemeToggle />
               <Button
 
                 variant="ghost"
@@ -323,9 +326,7 @@ export function GroceryList() {
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 md:py-24 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-muted to-accent flex items-center justify-center mb-5 shadow-soft">
-              <ShoppingBasket className="w-9 h-9 text-muted-foreground" />
-            </div>
+            <EmptyBasketIllustration className="w-52 h-44 md:w-64 md:h-52 mb-4 animate-fade-in" />
             <h2 className="text-lg md:text-xl font-display text-foreground mb-2">{t('empty.title')}</h2>
             <p className="text-sm md:text-base text-muted-foreground max-w-sm">
               {t('empty.description')}
