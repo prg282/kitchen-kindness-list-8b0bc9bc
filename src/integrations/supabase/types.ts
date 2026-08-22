@@ -70,6 +70,7 @@ export type Database = {
           list_id: string | null
           name: string
           notes: string | null
+          price: number | null
           quantity: string | null
           sort_order: number
           updated_at: string
@@ -85,6 +86,7 @@ export type Database = {
           list_id?: string | null
           name: string
           notes?: string | null
+          price?: number | null
           quantity?: string | null
           sort_order?: number
           updated_at?: string
@@ -100,6 +102,7 @@ export type Database = {
           list_id?: string | null
           name?: string
           notes?: string | null
+          price?: number | null
           quantity?: string | null
           sort_order?: number
           updated_at?: string
@@ -390,6 +393,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchases: {
+        Row: {
+          category: string
+          created_by: string | null
+          household_id: string
+          id: string
+          item_id: string | null
+          item_name: string
+          list_id: string | null
+          price: number
+          purchased_at: string
+          quantity: string | null
+        }
+        Insert: {
+          category?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          item_id?: string | null
+          item_name: string
+          list_id?: string | null
+          price?: number
+          purchased_at?: string
+          quantity?: string | null
+        }
+        Update: {
+          category?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          item_id?: string | null
+          item_name?: string
+          list_id?: string | null
+          price?: number
+          purchased_at?: string
+          quantity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
