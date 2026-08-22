@@ -20,6 +20,7 @@ export interface GroceryItem {
   notes?: string;
   assigned_to?: string | null;
   list_id?: string | null;
+  price?: number | null;
 }
 
 
