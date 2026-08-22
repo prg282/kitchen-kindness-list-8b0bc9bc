@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: 'openai/gpt-5.6-sol',
+        reasoning_effort: 'none',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `Recipe:\n\n${recipe}` },
