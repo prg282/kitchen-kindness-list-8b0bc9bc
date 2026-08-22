@@ -33,6 +33,7 @@ function mapItem(item: any): GroceryItem {
     notes: item.notes || undefined,
     assigned_to: item.assigned_to ?? null,
     list_id: item.list_id ?? null,
+    price: item.price !== null && item.price !== undefined ? Number(item.price) : null,
   };
 }
 
@@ -392,6 +393,56 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
   };
 
   // Toggle item
+  // Budget: record what a checked-off item cost so monthly trends can be built.
+  const logSpend = async (item: GroceryItem) => {
+    if (!householdId || !item.price || item.price <= 0) return;
+    const { error } = await supabase.from('purchases').upsert(
+      {
+        household_id: householdId,
+        item_id: item.id,
+        list_id: item.list_id ?? null,
+        item_name: item.name,
+        category: item.category,
+        quantity: item.quantity ?? null,
+        price: item.price,
+        created_by: user?.id ?? null,
+        purchased_at: new Date().toISOString(),
+      } as any,
+      { onConflict: 'item_id' },
+    );
+    if (error) console.error('Error logging spend:', error);
+  };
+
+  const unlogSpend = async (itemId: string) => {
+    if (!householdId) return;
+    await supabase.from('purchases').delete().eq('item_id', itemId);
+  };
+
+  // Budget: set (or clear) the price of an item
+  const setItemPrice = async (id: string, price: number | null) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, price } : i)));
+
+    const { error } = await withSync(supabase
+      .from('grocery_items')
+      .update({ price } as any)
+      .eq('id', id));
+
+    if (error) {
+      console.error('Error saving price:', error);
+      toast.error('Failed to save price');
+      setItems(prev => prev.map(i => (i.id === id ? item : i)));
+      return;
+    }
+
+    if (item.checked) {
+      if (price && price > 0) await logSpend({ ...item, price });
+      else await unlogSpend(id);
+    }
+  };
+
   const toggleItem = async (id: string) => {
     const item = items.find(i => i.id === id);
     if (!item) return;
@@ -421,6 +472,9 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     if (willBeChecked) {
       // Fire-and-forget cycle tracking
       recordPurchase(item.name);
+      logSpend(item);
+    } else {
+      unlogSpend(item.id);
     }
   };
 
@@ -693,5 +747,6 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     moveItemToCategory,
     getReminders,
     dismissReminder,
+    setItemPrice,
   };
 }

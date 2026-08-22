@@ -20,13 +20,15 @@ interface GroceryItemProps {
   onEdit: (id: string, newName: string, newQuantity?: string, newNotes?: string) => void;
   members?: HouseholdMember[];
   onAssign?: (id: string, memberId: string | null, memberName?: string | null) => void;
+  onSetPrice?: (id: string, price: number | null) => void;
 }
 
-export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members = [], onAssign }: GroceryItemProps) {
+export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members = [], onAssign, onSetPrice }: GroceryItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(item.name);
   const [editQuantity, setEditQuantity] = useState(item.quantity || '');
   const [editNotes, setEditNotes] = useState(item.notes || '');
+  const [editPrice, setEditPrice] = useState(item.price != null ? String(item.price) : '');
   const inputRef = useRef<HTMLInputElement>(null);
   const categoryInfo = getCategoryInfo(item.category);
   const assignee = members.find((m) => m.id === item.assigned_to) || null;
@@ -42,6 +44,22 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
   useEffect(() => {
     setEditNotes(item.notes || '');
   }, [item.notes]);
+
+  useEffect(() => {
+    setEditPrice(item.price != null ? String(item.price) : '');
+  }, [item.price]);
+
+  const savePrice = () => {
+    if (!onSetPrice) return;
+    const raw = editPrice.replace(',', '.').trim();
+    const parsed = raw === '' ? null : Number(raw);
+    if (parsed !== null && (!Number.isFinite(parsed) || parsed < 0)) {
+      setEditPrice(item.price != null ? String(item.price) : '');
+      return;
+    }
+    const rounded = parsed === null ? null : Math.round(parsed * 100) / 100;
+    if (rounded !== (item.price ?? null)) onSetPrice(item.id, rounded);
+  };
 
   const handleSaveEdit = () => {
     const trimmedValue = editValue.trim();
@@ -60,6 +78,7 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
       setEditQuantity(item.quantity || '');
       setEditNotes(item.notes || '');
     }
+    savePrice();
     setIsEditing(false);
   };
 
@@ -75,6 +94,7 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
     setEditValue(item.name);
     setEditQuantity(item.quantity || '');
     setEditNotes(item.notes || '');
+    setEditPrice(item.price != null ? String(item.price) : '');
     setIsEditing(false);
   };
 
@@ -157,6 +177,11 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
               <span className="font-medium text-primary mr-1">{item.quantity}</span>
             )}
             {item.name}
+            {item.price != null && item.price > 0 && (
+              <span className="ml-2 text-xs tabular-nums text-muted-foreground">
+                R{item.price.toFixed(2)}
+              </span>
+            )}
           </span>
         )}
 
@@ -228,6 +253,23 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
             maxLength={300}
             className="flex-1 bg-muted/40 focus:bg-background border border-border/40 focus:border-primary/60 focus:outline-none text-xs md:text-sm py-1 px-2 rounded"
           />
+          {onSetPrice && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="text-xs text-muted-foreground">R</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.01"
+                value={editPrice}
+                onChange={(e) => setEditPrice(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="0.00"
+                aria-label="Price in rand"
+                className="w-16 bg-muted/40 focus:bg-background border border-border/40 focus:border-primary/60 focus:outline-none text-xs md:text-sm py-1 px-2 rounded"
+              />
+            </div>
+          )}
         </div>
       ) : item.notes ? (
         <div
