@@ -15,6 +15,8 @@ import { useHouseholdMembers } from '@/hooks/useHouseholdMembers';
 import { ListSwitcher } from './ListSwitcher';
 import { ActivityFeedSheet } from './ActivityFeedSheet';
 import { ThemeToggle } from './ThemeToggle';
+import { BudgetSheet } from './BudgetSheet';
+import { RecipeImportDialog } from './RecipeImportDialog';
 import { EmptyBasketIllustration } from './illustrations/EmptyBasket';
 
 
@@ -64,6 +66,7 @@ export function GroceryList() {
     getReminders,
     dismissReminder,
     assignItem,
+    setItemPrice,
   } = useGroceryList(activeListId, activeList?.name ?? null);
   const { members } = useHouseholdMembers();
 
@@ -106,6 +109,10 @@ export function GroceryList() {
   const totalItems = items.length;
   const checkedItems = items.filter((i) => i.checked).length;
   const progress = totalItems > 0 ? (checkedItems / totalItems) * 100 : 0;
+
+  const listTotal = items.reduce((sum, i) => sum + (i.price ?? 0), 0);
+  const checkedTotal = items.filter((i) => i.checked).reduce((sum, i) => sum + (i.price ?? 0), 0);
+  const pricedCount = items.filter((i) => (i.price ?? 0) > 0).length;
 
   const activeItem = activeId ? items.find((i) => i.id === activeId) : null;
 
@@ -236,6 +243,13 @@ export function GroceryList() {
                   <span className="hidden sm:inline">{t('app.clearChecked')}</span>
                 </button>
               )}
+              <RecipeImportDialog onAddItem={addItem} />
+              <BudgetSheet
+                listTotal={listTotal}
+                checkedTotal={checkedTotal}
+                pricedCount={pricedCount}
+                totalCount={items.length}
+              />
               <ActivityFeedSheet />
               <ThemeToggle />
               <Button
@@ -355,6 +369,7 @@ export function GroceryList() {
                   onEdit={editItem}
                   members={members}
                   onAssign={assignItem}
+                  onSetPrice={setItemPrice}
                 />
 
               ))}
