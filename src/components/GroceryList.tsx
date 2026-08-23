@@ -234,14 +234,14 @@ export function GroceryList() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-0.5 md:gap-1">
+            <div className="hidden sm:flex items-center gap-0.5 md:gap-1">
               {checkedItems > 0 && (
                 <button
                   onClick={clearChecked}
                   className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                 >
                   <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                  <span className="hidden sm:inline">{t('app.clearChecked')}</span>
+                  <span>{t('app.clearChecked')}</span>
                 </button>
               )}
               <RecipeImportDialog onAddItem={addItem} />
@@ -254,7 +254,6 @@ export function GroceryList() {
               <ActivityFeedSheet />
               <ThemeToggle />
               <Button
-
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate('/cards')}
@@ -282,6 +281,76 @@ export function GroceryList() {
                 <LogOut className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </div>
+
+            {/* Mobile hamburger menu */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="sm:hidden text-muted-foreground hover:text-foreground h-9 w-9 rounded-xl"
+                  aria-label="Open menu"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[260px] sm:max-w-sm p-4">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <div className="flex flex-col gap-2 mt-6">
+                  {checkedItems > 0 && (
+                    <button
+                      onClick={clearChecked}
+                      className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      {t('app.clearChecked')}
+                    </button>
+                  )}
+                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
+                    <RecipeImportDialog onAddItem={addItem} />
+                    <span className="text-sm font-medium text-muted-foreground">Recipe → list</span>
+                  </div>
+                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
+                    <BudgetSheet
+                      listTotal={listTotal}
+                      checkedTotal={checkedTotal}
+                      pricedCount={pricedCount}
+                      totalCount={items.length}
+                    />
+                    <span className="text-sm font-medium text-muted-foreground">Budget</span>
+                  </div>
+                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
+                    <ActivityFeedSheet />
+                    <span className="text-sm font-medium text-muted-foreground">Activity</span>
+                  </div>
+                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
+                    <ThemeToggle />
+                    <span className="text-sm font-medium text-muted-foreground">Theme</span>
+                  </div>
+                  <button
+                    onClick={() => navigate('/cards')}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    Rewards Cards
+                  </button>
+                  <button
+                    onClick={() => navigate('/household')}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <Home className="w-5 h-5" />
+                    {t('app.householdSettings')}
+                  </button>
+                  <button
+                    onClick={signOut}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    {t('app.signOut')}
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
 
           <div className="flex items-center justify-between gap-2 mb-3">
