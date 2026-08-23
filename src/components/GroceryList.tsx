@@ -23,6 +23,7 @@ import { EmptyBasketIllustration } from './illustrations/EmptyBasket';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import {
   DndContext,
   DragEndEvent,
