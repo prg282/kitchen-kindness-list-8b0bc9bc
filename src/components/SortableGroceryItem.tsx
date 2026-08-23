@@ -13,9 +13,10 @@ interface SortableGroceryItemProps {
   onEdit: (id: string, newName: string, newQuantity?: string, newNotes?: string) => void;
   members?: HouseholdMember[];
   onAssign?: (id: string, memberId: string | null, memberName?: string | null) => void;
+  onSetPrice?: (id: string, price: number | null) => void;
 }
 
-export function SortableGroceryItem({ item, onToggle, onDelete, onEdit, members, onAssign }: SortableGroceryItemProps) {
+export function SortableGroceryItem({ item, onToggle, onDelete, onEdit, members, onAssign, onSetPrice }: SortableGroceryItemProps) {
 
   const {
     attributes,
@@ -56,6 +57,7 @@ export function SortableGroceryItem({ item, onToggle, onDelete, onEdit, members,
           onEdit={onEdit}
           members={members}
           onAssign={onAssign}
+          onSetPrice={onSetPrice}
         />
 
       </div>
