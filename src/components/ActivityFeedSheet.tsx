@@ -12,11 +12,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { describeActivity, timeAgo } from '@/lib/activity';
 
-export function ActivityFeedSheet() {
+interface ActivityFeedSheetProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+}
+
+export function ActivityFeedSheet({ open, onOpenChange, hideTrigger }: ActivityFeedSheetProps = {}) {
   const { events, loadingActivity } = useActivityFeed();
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      {!hideTrigger && (
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -27,6 +34,7 @@ export function ActivityFeedSheet() {
           <History className="w-4 h-4 md:w-5 md:h-5" />
         </Button>
       </SheetTrigger>
+      )}
       <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">

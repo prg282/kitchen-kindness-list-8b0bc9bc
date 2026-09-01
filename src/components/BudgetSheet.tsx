@@ -19,10 +19,26 @@ interface BudgetSheetProps {
   checkedTotal: number;
   pricedCount: number;
   totalCount: number;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export function BudgetSheet({ listTotal, checkedTotal, pricedCount, totalCount }: BudgetSheetProps) {
-  const [open, setOpen] = useState(false);
+export function BudgetSheet({
+  listTotal,
+  checkedTotal,
+  pricedCount,
+  totalCount,
+  open: openProp,
+  onOpenChange,
+  hideTrigger,
+}: BudgetSheetProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = openProp ?? uncontrolledOpen;
+  const setOpen = (o: boolean) => {
+    if (openProp === undefined) setUncontrolledOpen(o);
+    onOpenChange?.(o);
+  };
   const { months, monthTotal, monthCount, changePct, topCategories, purchases, loading, refresh } =
     useBudget();
 
@@ -36,6 +52,7 @@ export function BudgetSheet({ listTotal, checkedTotal, pricedCount, totalCount }
         if (o) refresh();
       }}
     >
+      {!hideTrigger && (
       <SheetTrigger asChild>
         <Button
           variant="ghost"
@@ -46,6 +63,7 @@ export function BudgetSheet({ listTotal, checkedTotal, pricedCount, totalCount }
           <Wallet className="w-4 h-4 md:w-5 md:h-5" />
         </Button>
       </SheetTrigger>
+      )}
 
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
