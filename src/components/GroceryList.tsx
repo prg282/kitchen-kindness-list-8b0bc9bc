@@ -1,4 +1,4 @@
-import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Home, CreditCard, Menu } from 'lucide-react';
+import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Home, CreditCard, Menu, ChefHat, Wallet, History } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GroceryInput } from './GroceryInput';
@@ -81,6 +81,15 @@ export function GroceryList() {
     addItem(k.name, k.category, undefined, k.notes);
   };
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [recipeOpen, setRecipeOpen] = useState(false);
+  const [budgetOpen, setBudgetOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const openFromMenu = (setter: (v: boolean) => void) => {
+    setMenuOpen(false);
+    // wait for the menu overlay to unmount before opening the next one
+    setTimeout(() => setter(true), 220);
+  };
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overCategory, setOverCategory] = useState<CategoryType | null>(null);
 
