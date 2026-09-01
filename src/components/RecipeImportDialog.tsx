@@ -25,10 +25,18 @@ interface ExtractedItem {
 
 interface RecipeImportDialogProps {
   onAddItem: (name: string, category: CategoryType, quantity?: string, notes?: string) => Promise<void> | void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export function RecipeImportDialog({ onAddItem }: RecipeImportDialogProps) {
-  const [open, setOpen] = useState(false);
+export function RecipeImportDialog({ onAddItem, open: openProp, onOpenChange, hideTrigger }: RecipeImportDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = openProp ?? uncontrolledOpen;
+  const setOpen = (o: boolean) => {
+    if (openProp === undefined) setUncontrolledOpen(o);
+    onOpenChange?.(o);
+  };
   const [recipe, setRecipe] = useState('');
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -116,6 +124,7 @@ export function RecipeImportDialog({ onAddItem }: RecipeImportDialogProps) {
         if (!o) reset();
       }}
     >
+      {!hideTrigger && (
       <DialogTrigger asChild>
         <Button
           variant="ghost"
@@ -126,6 +135,7 @@ export function RecipeImportDialog({ onAddItem }: RecipeImportDialogProps) {
           <ChefHat className="w-4 h-4 md:w-5 md:h-5" />
         </Button>
       </DialogTrigger>
+      )}
 
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
