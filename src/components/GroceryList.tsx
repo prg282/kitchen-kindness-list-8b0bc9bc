@@ -283,7 +283,7 @@ export function GroceryList() {
             </div>
 
             {/* Mobile hamburger menu */}
-            <Sheet>
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
@@ -296,53 +296,57 @@ export function GroceryList() {
               </SheetTrigger>
               <SheetContent side="right" className="w-[260px] sm:max-w-sm p-4">
                 <SheetTitle className="sr-only">Menu</SheetTitle>
-                <div className="flex flex-col gap-2 mt-6">
+                <div className="flex flex-col gap-1 mt-6">
                   {checkedItems > 0 && (
                     <button
-                      onClick={clearChecked}
+                      onClick={() => { setMenuOpen(false); clearChecked(); }}
                       className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                     >
                       <Trash2 className="w-5 h-5" />
                       {t('app.clearChecked')}
                     </button>
                   )}
-                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
-                    <RecipeImportDialog onAddItem={addItem} />
-                    <span className="text-sm font-medium text-muted-foreground">Recipe → list</span>
-                  </div>
-                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
-                    <BudgetSheet
-                      listTotal={listTotal}
-                      checkedTotal={checkedTotal}
-                      pricedCount={pricedCount}
-                      totalCount={items.length}
-                    />
-                    <span className="text-sm font-medium text-muted-foreground">Budget</span>
-                  </div>
-                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
-                    <ActivityFeedSheet />
-                    <span className="text-sm font-medium text-muted-foreground">Activity</span>
-                  </div>
-                  <div className="flex items-center gap-3 w-full px-3 py-3 rounded-xl hover:bg-muted/50">
+                  <button
+                    onClick={() => openFromMenu(setRecipeOpen)}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <ChefHat className="w-5 h-5" />
+                    Recipe → list
+                  </button>
+                  <button
+                    onClick={() => openFromMenu(setBudgetOpen)}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <Wallet className="w-5 h-5" />
+                    Budget
+                  </button>
+                  <button
+                    onClick={() => openFromMenu(setActivityOpen)}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <History className="w-5 h-5" />
+                    Activity
+                  </button>
+                  <div className="flex items-center gap-3 w-full px-3 py-2 rounded-xl">
                     <ThemeToggle />
                     <span className="text-sm font-medium text-muted-foreground">Theme</span>
                   </div>
                   <button
-                    onClick={() => navigate('/cards')}
+                    onClick={() => { setMenuOpen(false); navigate('/cards'); }}
                     className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
                   >
                     <CreditCard className="w-5 h-5" />
                     Rewards Cards
                   </button>
                   <button
-                    onClick={() => navigate('/household')}
+                    onClick={() => { setMenuOpen(false); navigate('/household'); }}
                     className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
                   >
                     <Home className="w-5 h-5" />
                     {t('app.householdSettings')}
                   </button>
                   <button
-                    onClick={signOut}
+                    onClick={() => { setMenuOpen(false); signOut(); }}
                     className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
                   >
                     <LogOut className="w-5 h-5" />
@@ -351,6 +355,27 @@ export function GroceryList() {
                 </div>
               </SheetContent>
             </Sheet>
+
+            {/* Mobile panels rendered outside the menu to avoid nested overlays */}
+            <div className="sm:hidden">
+              <RecipeImportDialog
+                onAddItem={addItem}
+                open={recipeOpen}
+                onOpenChange={setRecipeOpen}
+                hideTrigger
+              />
+              <BudgetSheet
+                listTotal={listTotal}
+                checkedTotal={checkedTotal}
+                pricedCount={pricedCount}
+                totalCount={items.length}
+                open={budgetOpen}
+                onOpenChange={setBudgetOpen}
+                hideTrigger
+              />
+              <ActivityFeedSheet open={activityOpen} onOpenChange={setActivityOpen} hideTrigger />
+            </div>
+
           </div>
 
           <div className="flex items-center justify-between gap-2 mb-3">
