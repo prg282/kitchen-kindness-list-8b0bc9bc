@@ -1,6 +1,10 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { readSnapshot, writeSnapshot, isOffline } from '@/lib/offlineCache';
+
+const USER_KEY = 'auth-user';
+const PROFILE_KEY = 'auth-profile';
 
 interface Profile {
   id: string;
@@ -37,11 +41,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (error) {
+      // Offline or network failure: fall back to last known profile
+      const cached = readSnapshot<Profile>(PROFILE_KEY);
+      if (cached && cached.id === userId) { setProfile(cached); return; }
       console.error('Error fetching profile:', error);
       setProfile(null);
       return;
     }
 
+    writeSnapshot(PROFILE_KEY, data);
     setProfile(data);
   };
 
@@ -49,6 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // While offline, a failed token refresh must not log the user out
+        if (!session && isOffline() && event !== 'SIGNED_OUT') {
+          setLoading(false);
+          return;
+        }
+        if (session?.user) writeSnapshot(USER_KEY, session.user);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -65,7 +79,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // THEN check for existing session
+    const applyOfflineFallback = () => {
+      const u = readSnapshot<User>(USER_KEY);
+      if (!u) return false;
+      setUser(u);
+      setProfile(readSnapshot<Profile>(PROFILE_KEY));
+      setLoading(false);
+      return true;
+    };
+
+    // Don't hang on a cold offline start
+    const offlineTimer = setTimeout(() => {
+      if (isOffline()) applyOfflineFallback();
+    }, 1500);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(offlineTimer);
+      if (!session && isOffline() && applyOfflineFallback()) return;
+      if (session?.user) writeSnapshot(USER_KEY, session.user);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -74,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => { clearTimeout(offlineTimer); subscription.unsubscribe(); };
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
@@ -105,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    try { localStorage.removeItem('offline-snapshot-v1:' + USER_KEY); localStorage.removeItem('offline-snapshot-v1:' + PROFILE_KEY); } catch { /* noop */ }
     setUser(null);
     setSession(null);
     setProfile(null);
