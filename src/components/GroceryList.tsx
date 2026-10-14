@@ -408,6 +408,7 @@ export function GroceryList() {
               </SheetContent>
             </Sheet>
 
+            <ScanToAdd open={scanOpen} onOpenChange={setScanOpen} onAddItem={addItem} />
             {/* Mobile panels rendered outside the menu to avoid nested overlays */}
             <div className="sm:hidden">
               <RecipeImportDialog
