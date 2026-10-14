@@ -1,4 +1,6 @@
-import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Home, CreditCard, Menu, ChefHat, Wallet, History } from 'lucide-react';
+import { ShoppingBasket, Sparkles, Trash2, LogOut, Users, Home, CreditCard, Menu, ChefHat, Wallet, History, ScanBarcode, Share2, MessageCircle } from 'lucide-react';
+import { ScanToAdd, shareListText } from './ListExtras';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GroceryInput } from './GroceryInput';
@@ -85,6 +87,8 @@ export function GroceryList() {
   const [recipeOpen, setRecipeOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [activityOpen, setActivityOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
+  const listLabel = activeList?.name ?? 'Shopping list';
   const openFromMenu = (setter: (v: boolean) => void) => {
     setMenuOpen(false);
     // wait for the menu overlay to unmount before opening the next one
@@ -253,6 +257,24 @@ export function GroceryList() {
                   <span>{t('app.clearChecked')}</span>
                 </button>
               )}
+              <Button variant="ghost" size="icon" onClick={() => setScanOpen(true)} title="Scan barcode to add" className="text-muted-foreground hover:text-foreground h-9 w-9 md:h-10 md:w-10 rounded-xl">
+                <ScanBarcode className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" title="Share list" className="text-muted-foreground hover:text-foreground h-9 w-9 md:h-10 md:w-10 rounded-xl">
+                    <Share2 className="w-4 h-4 md:w-5 md:h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => shareListText(listLabel, items, 'whatsapp')}>
+                    <MessageCircle className="w-4 h-4 mr-2" /> Send on WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => shareListText(listLabel, items, 'share')}>
+                    <Share2 className="w-4 h-4 mr-2" /> Share / copy as text
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <RecipeImportDialog onAddItem={addItem} />
               <BudgetSheet
                 listTotal={listTotal}
@@ -335,6 +357,27 @@ export function GroceryList() {
                   >
                     <History className="w-5 h-5" />
                     Activity
+                  </button>
+                  <button
+                    onClick={() => openFromMenu(setScanOpen)}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <ScanBarcode className="w-5 h-5" />
+                    Scan to add
+                  </button>
+                  <button
+                    onClick={() => { setMenuOpen(false); shareListText(listLabel, items, 'whatsapp'); }}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Send on WhatsApp
+                  </button>
+                  <button
+                    onClick={() => { setMenuOpen(false); shareListText(listLabel, items, 'share'); }}
+                    className="flex items-center gap-3 w-full px-3 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    Share list as text
                   </button>
                   <div className="flex items-center gap-3 w-full px-3 py-2 rounded-xl">
                     <ThemeToggle />
