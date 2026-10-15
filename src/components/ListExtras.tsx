@@ -15,7 +15,9 @@ export async function lookupBarcode(code: string): Promise<string | null> {
     if (!p?.product_name) return null;
     const brand = (p.brands || '').split(',')[0]?.trim();
     const name = String(p.product_name).trim();
-    return brand && !name.toLowerCase().includes(brand.toLowerCase()) ? `${brand} ${name}` : name;
+    const brandWord = (brand || '').split(/\s+/)[0]?.toLowerCase();
+    const showBrand = brand && brand.length <= 20 && brandWord && !name.toLowerCase().includes(brandWord);
+    return showBrand ? `${brand} ${name}` : name;
   } catch {
     return null;
   }
