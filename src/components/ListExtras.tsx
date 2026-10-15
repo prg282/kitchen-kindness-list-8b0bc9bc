@@ -47,7 +47,14 @@ export function ScanToAdd({
       if (manual?.trim()) onAddItem(manual.trim(), categorizeItem(manual.trim()));
     }
   };
-  return <BarcodeScanner open={open} onClose={() => onOpenChange(false)} onDetected={handle} />;
+  return (
+    <BarcodeScanner
+      open={open}
+      onClose={() => onOpenChange(false)}
+      onDetected={handle}
+      description="Point your camera at the barcode on the product."
+    />
+  );
 }
 
 /** Build a plain-text version of the list grouped by category. */

@@ -9,44 +9,60 @@ interface BarcodeScannerProps {
   open: boolean;
   onClose: () => void;
   onDetected: (value: string, format: string) => void;
+  description?: string;
 }
 
-export function BarcodeScanner({ open, onClose, onDetected }: BarcodeScannerProps) {
+function friendlyError(err: any): string {
+  const name = err?.name || '';
+  if (name === 'NotAllowedError' || name === 'SecurityError')
+    return 'Camera access was blocked. Allow camera access in your browser settings, then try again.';
+  if (name === 'NotFoundError' || name === 'OverconstrainedError')
+    return 'No camera found on this device.';
+  if (name === 'NotReadableError') return 'Your camera is being used by another app. Close it and try again.';
+  if (!navigator.mediaDevices?.getUserMedia) return 'This browser does not support the camera. Try Chrome or Safari.';
+  return err?.message || 'Unable to access camera';
+}
+
+export function BarcodeScanner({ open, onClose, onDetected, description }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const onDetectedRef = useRef(onDetected);
+  onDetectedRef.current = onDetected;
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
+    let done = false;
     const reader = new BrowserMultiFormatReader();
     setStarting(true);
     setError(null);
 
     (async () => {
       try {
-        const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-        if (!devices.length) throw new Error('No camera found on this device');
-        const back = devices.find((d) => /back|rear|environment/i.test(d.label)) ?? devices[devices.length - 1];
-
-        const controls = await reader.decodeFromVideoDevice(
-          back.deviceId,
-          videoRef.current!,
+        if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
+        // Wait for the dialog to mount the <video>
+        for (let i = 0; i < 20 && !videoRef.current; i++) await new Promise((r) => setTimeout(r, 25));
+        if (cancelled || !videoRef.current) return;
+        const controls = await reader.decodeFromConstraints(
+          { video: { facingMode: { ideal: 'environment' } }, audio: false },
+          videoRef.current,
           (result: Result | undefined) => {
-            if (result && !cancelled) {
-              onDetected(result.getText(), result.getBarcodeFormat().toString());
+            if (result && !cancelled && !done) {
+              done = true;
               controls.stop();
+              onDetectedRef.current(result.getText(), result.getBarcodeFormat().toString());
             }
           },
         );
         controlsRef.current = controls;
         if (cancelled) controls.stop();
       } catch (err: any) {
-        console.error('Scanner error:', err);
-        setError(err?.message || 'Unable to access camera');
+        console.warn('Scanner error:', err);
+        if (!cancelled) setError(friendlyError(err));
       } finally {
-        setStarting(false);
+        if (!cancelled) setStarting(false);
       }
     })();
 
@@ -55,7 +71,7 @@ export function BarcodeScanner({ open, onClose, onDetected }: BarcodeScannerProp
       controlsRef.current?.stop();
       controlsRef.current = null;
     };
-  }, [open, onDetected]);
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -63,18 +79,18 @@ export function BarcodeScanner({ open, onClose, onDetected }: BarcodeScannerProp
         <DialogHeader>
           <DialogTitle>Scan barcode</DialogTitle>
           <DialogDescription>
-            Point your camera at the barcode on the back of the loyalty card.
+            {description ?? 'Point your camera at the barcode on the back of the loyalty card.'}
           </DialogDescription>
         </DialogHeader>
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-black">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-muted">
           <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />
-          {starting && (
-            <div className="absolute inset-0 flex items-center justify-center text-white">
+          {starting && !error && (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           )}
           {error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/90 p-4 text-center text-sm text-destructive">
+            <div role="alert" className="absolute inset-0 flex items-center justify-center bg-background/95 p-4 text-center text-sm text-destructive">
               {error}
             </div>
           )}
