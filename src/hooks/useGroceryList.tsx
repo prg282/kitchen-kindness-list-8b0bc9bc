@@ -247,9 +247,34 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
   }, [householdId, activeListId]);
 
 
-  // Add item
-  const addItem = async (name: string, category: CategoryType, quantity?: string, notes?: string) => {
+  // Change an item's quantity in place (used when repeated adds are merged)
+  const updateItemQuantity = async (id: string, quantity: string | undefined) => {
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+
+    setItems(prev => prev.map(i => (i.id === id ? { ...i, quantity } : i)));
+
+    const { error } = await withSync(supabase
+      .from('grocery_items')
+      .update({ quantity: quantity || null } as any)
+      .eq('id', id));
+
+    if (error) {
+      console.error('Error updating quantity:', error);
+      toast.error('Failed to update quantity');
+      setItems(prev => prev.map(i => (i.id === id ? item : i)));
+    }
+  };
+
+  const addItem = async (rawName: string, category: CategoryType, quantityArg?: string, notes?: string) => {
     if (!householdId || !user) return;
+
+    // Accept a quantity typed straight into the name, e.g. "2 x 500ml milk"
+    const parsed = parseQuantityAndName(rawName);
+    const name = parsed.name;
+    const explicitQty = quantityArg?.trim();
+    const quantity = explicitQty || parsed.quantity;
+    const effectiveCategory = parsed.quantity && !explicitQty ? categorizeItem(name) : category;
 
     // If notes not provided, pull default from known items
     let resolvedNotes = notes;
@@ -258,20 +283,27 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
       if (known?.notes) resolvedNotes = known.notes;
     }
 
-    // Check if item already exists (case-insensitive)
+    // Check if item already exists (case-insensitive) — merge quantities instead of duplicating
     const normalizedName = name.toLowerCase().trim();
     const existingItem = items.find(
       item => item.name.toLowerCase().trim() === normalizedName
     );
 
     if (existingItem) {
+      const merged = combineQuantities(existingItem.quantity, quantity);
+      const quantityChanged = merged !== undefined && merged !== (existingItem.quantity ?? undefined);
+
       if (existingItem.checked) {
+        if (quantityChanged) await updateItemQuantity(existingItem.id, merged);
         await toggleItem(existingItem.id);
-        toast.success(`${existingItem.name} added back to list`);
+        toast.success(`${existingItem.name} added back to list${merged ? ` (${merged})` : ''}`);
+      } else if (quantityChanged) {
+        await updateItemQuantity(existingItem.id, merged);
+        toast.success(`${existingItem.name} quantity is now ${merged}`);
       } else {
         toast.info(`${existingItem.name} is already on your list`);
       }
-      await saveKnownItem(name, category);
+      await saveKnownItem(name, effectiveCategory);
       return;
     }
 
