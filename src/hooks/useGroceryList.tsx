@@ -346,7 +346,7 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     setItems(prev => prev.map(i => i.id === tempId ? mapItem(data) : i));
     log('added', name);
 
-    await saveKnownItem(name, category);
+    await saveKnownItem(name, effectiveCategory);
   };
 
 
