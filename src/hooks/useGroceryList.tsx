@@ -327,7 +327,7 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
         household_id: householdId,
         list_id: activeListId ?? null,
         name,
-        category,
+        category: effectiveCategory,
         checked: false,
         created_by: user.id,
         quantity: quantity || null,
