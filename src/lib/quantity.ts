@@ -12,8 +12,8 @@ const UNIT_RE =
 function isUnitToken(token: string): boolean {
   const t = token.toLowerCase().trim();
   if (!t) return false;
-  if (/^\d+(?:[.,]\d+)?\s*[- ]?(?:x\s*)?[a-z]{1,10}$/.test(t) && /\d/.test(t)) {
-    // "500ml", "1.5kg", "6pack" — digits followed by letters
+  // "500ml", "1.5kg", "6pack" — digits followed by a known unit
+  if (/^\d+(?:[.,]\d+)?\s*(?:ml|l|ltr|litres?|liters?|g|gr|grams?|kg|kgs?|kilograms?|packs?|pk|dozen|doz|ea|each)$/.test(t)) {
     return true;
   }
   return UNIT_RE.test(t);
@@ -28,10 +28,11 @@ export function parseQty(raw?: string | null): ParsedQty | null {
   if (!raw) return null;
   const text = raw.trim().toLowerCase();
   if (!text) return null;
-  const m = text.match(/^(\d+(?:[.,]\d+)?)\s*(?:x|×)?\s*(.*)$/);
+  // Count must be followed by "x" or whitespace — "500ml" is unit-only
+  const m = text.match(/^(\d+(?:[.,]\d+)?)\s*(?:(?:x|×)\s*(.+)?|\s+(.+))$/);
   if (m) {
     const count = parseFloat(m[1].replace(',', '.'));
-    const unit = m[2]?.trim() || null;
+    const unit = (m[2] ?? m[3] ?? '').trim() || null;
     return { count: Number.isFinite(count) ? count : null, unit };
   }
   // Unit-only, e.g. "500ml"
