@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { GroceryItem, KnownItem, CategoryType, categorizeItem } from '@/lib/groceryCategories';
+import { parseQuantityAndName, combineQuantities } from '@/lib/quantity';
 import { toast } from 'sonner';
 import { pingSync, pongSync } from '@/components/SyncStatus';
 import { logActivity } from '@/lib/activity';
