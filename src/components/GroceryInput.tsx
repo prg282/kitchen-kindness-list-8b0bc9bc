@@ -108,7 +108,8 @@ export function GroceryInput({ onAddItem, searchKnownItems, getFrequentItems, on
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               placeholder={t('input.qty')}
-              className="w-12 md:w-16 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
+              title="Quantity & units, e.g. 2 x 500ml"
+              className="w-16 md:w-24 bg-muted/50 px-1.5 md:px-2 py-2 md:py-3 text-foreground placeholder:text-muted-foreground focus:outline-none text-sm md:text-base rounded-md text-center"
             />
           <input
             ref={inputRef}
