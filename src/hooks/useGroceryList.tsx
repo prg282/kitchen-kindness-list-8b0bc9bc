@@ -312,7 +312,7 @@ export function useGroceryList(activeListId?: string | null, activeListName?: st
     const newItem: GroceryItem = {
       id: tempId,
       name,
-      category,
+      category: effectiveCategory,
       checked: false,
       created_by: user.id,
       quantity,
