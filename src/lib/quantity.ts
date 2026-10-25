@@ -60,9 +60,10 @@ export function combineQuantities(a?: string | null, b?: string | null): string 
   if (!qa) return formatQty(qb);
   if (!qb) return formatQty(qa);
 
-  // Treat a unit-only quantity ("500ml") as one unit of it when combining with a count.
-  const pa: ParsedQty = qa.count == null && qa.unit && qb.count != null ? { count: 1, unit: qa.unit } : qa;
-  const pb: ParsedQty = qb.count == null && qb.unit && qa.count != null ? { count: 1, unit: qb.unit } : qb;
+  // Treat a unit-only quantity ("500ml") as one unit of it when the units agree.
+  const unitsMatch = (qa.unit ?? '') === (qb.unit ?? '');
+  const pa: ParsedQty = qa.count == null && qa.unit && (qb.count != null || unitsMatch) ? { count: 1, unit: qa.unit } : qa;
+  const pb: ParsedQty = qb.count == null && qb.unit && (qa.count != null || unitsMatch) ? { count: 1, unit: qb.unit } : qb;
 
   const unitA = pa.unit ?? '';
   const unitB = pb.unit ?? '';
