@@ -61,9 +61,14 @@ export function combineQuantities(a?: string | null, b?: string | null): string 
   if (!qb) return formatQty(qa);
 
   // Treat a unit-only quantity ("500ml") as one unit of it when the units agree.
+  let pa: ParsedQty = qa;
+  let pb: ParsedQty = qb;
   const unitsMatch = (qa.unit ?? '') === (qb.unit ?? '');
-  const pa: ParsedQty = qa.count == null && qa.unit && (qb.count != null || unitsMatch) ? { count: 1, unit: qa.unit } : qa;
-  const pb: ParsedQty = qb.count == null && qb.unit && (qa.count != null || unitsMatch) ? { count: 1, unit: qb.unit } : qb;
+  if (qa.count == null && qa.unit && (qb.count != null || unitsMatch)) pa = { count: 1, unit: qa.unit };
+  if (qb.count == null && qb.unit && (qa.count != null || unitsMatch)) pb = { count: 1, unit: qb.unit };
+  // A bare count ("2") added to a unit quantity ("2 x 500ml") adopts that unit.
+  if (pa.unit == null && pb.unit != null) pa = { ...pa, unit: pb.unit };
+  if (pb.unit == null && pa.unit != null) pb = { ...pb, unit: pa.unit };
 
   const unitA = pa.unit ?? '';
   const unitB = pb.unit ?? '';
@@ -74,7 +79,7 @@ export function combineQuantities(a?: string | null, b?: string | null): string 
 
   const fa = formatQty(qa);
   const fb = formatQty(qb);
-  if (fa && fb && fa !== fb) return `${fa} + ${fb}`;
+  if (fa && fb && fa !== fb) return `${(a ?? '').trim()} + ${(b ?? '').trim()}`;
   return fa ?? fb;
 }
 
