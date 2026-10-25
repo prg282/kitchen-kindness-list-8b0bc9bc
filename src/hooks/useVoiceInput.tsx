@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { categorizeItem, CategoryType } from '@/lib/groceryCategories';
+import { parseQuantityAndName } from '@/lib/quantity';
 import { toast } from 'sonner';
 
 interface UseVoiceInputProps {
@@ -25,17 +26,10 @@ export function useVoiceInput({ onAddItem }: UseVoiceInputProps) {
 
     let addedCount = 0;
     for (const item of rawItems) {
-      // Try to extract quantity like "2 milk" or "three eggs"
-      const quantityMatch = item.match(/^(\d+)\s+(.+)$/);
-      if (quantityMatch) {
-        const quantity = quantityMatch[1];
-        const name = quantityMatch[2];
-        const category = categorizeItem(name);
-        onAddItem(name, category, quantity);
-      } else {
-        const category = categorizeItem(item);
-        onAddItem(item, category);
-      }
+      // Extract quantities like "2 milk", "two eggs" or "500ml milk"
+      const parsed = parseQuantityAndName(item);
+      const category = categorizeItem(parsed.name);
+      onAddItem(parsed.name, category, parsed.quantity);
       addedCount++;
     }
 

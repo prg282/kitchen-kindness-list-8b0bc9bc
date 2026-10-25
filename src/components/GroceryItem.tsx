@@ -174,7 +174,9 @@ export function GroceryItemComponent({ item, onToggle, onDelete, onEdit, members
             )}
           >
             {item.quantity && (
-              <span className="font-medium text-primary mr-1">{item.quantity}</span>
+              <span className="inline-flex items-center rounded-md bg-primary/10 px-1.5 py-0.5 font-medium text-primary mr-1.5 align-middle text-xs md:text-sm whitespace-nowrap">
+                {item.quantity}
+              </span>
             )}
             {item.name}
             {item.price != null && item.price > 0 && (
