@@ -110,7 +110,11 @@ export function parseQuantityAndName(raw: string): { name: string; quantity?: st
     const token = m[1].trim();
     const name = m[2].trim();
     const bare = token.match(/^(\d+(?:[.,]\d+)?)$/);
-    if (bare) return { name, quantity: bare[1] };
+    if (bare) {
+      // Product names that start with a number, e.g. "2 minute noodles"
+      if (/^minute\b/i.test(name)) return { name: text };
+      return { name, quantity: bare[1] };
+    }
     if (isUnitToken(token)) return { name, quantity: token };
   }
 
